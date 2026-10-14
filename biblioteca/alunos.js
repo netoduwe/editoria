@@ -14,42 +14,34 @@ function referenceName(item){
  if(name===name.toUpperCase())name=name.toLocaleLowerCase('pt-BR').replace(/\b(img|cta|gpt|sfx)\b/gi,word=>word.toUpperCase());
  return name.charAt(0).toLocaleUpperCase('pt-BR')+name.slice(1);
 }
-const player=document.createElement('dialog');
-player.id='player';player.setAttribute('aria-labelledby','player-title');
-player.innerHTML='<div class="player-head"><h2 id="player-title"></h2><button id="close-player" aria-label="Fechar vídeo">×</button></div><div class="player-stage"><div class="player-media"></div><div id="player-status" hidden><p role="status">Não foi possível carregar o vídeo.</p><button id="retry-player">Tentar novamente</button></div></div><div class="player-footer"><button class="reference-action" id="player-reference">Usar referência <span aria-hidden="true">↗</span></button></div>';
-document.body.appendChild(player);
-let playingId=null;
-function clearPlayerMedia(){
- const video=player.querySelector('video');
- if(video){video.pause();video.removeAttribute('src');video.load();}
- player.querySelector('.player-media').replaceChildren();
+let inlinePlayer=null;
+function stopInlinePlayer(){
+ if(!inlinePlayer)return;
+ const {video,stage,poster}=inlinePlayer;inlinePlayer=null;
+ video.pause();video.removeAttribute('src');video.load();
+ if(stage.isConnected)stage.replaceWith(poster);
 }
-function openPlayer(id){
+function playInline(id){
  const item=byId.get(id);if(!item?.video_player_url){toast('Vídeo ainda não disponível.');return;}
+ if(inlinePlayer?.id===id&&!inlinePlayer.video.error){inlinePlayer.video.play().catch(()=>{});return;}
+ stopInlinePlayer();
+ const poster=document.querySelector('.card[data-id="'+id+'"] .poster');
+ if(!poster){toast('Encontre esta referência no feed para assistir.');return;}
  if($('#detail').open)closeDetail();
- clearPlayerMedia();$('#player-status').hidden=true;
- playingId=id;$('#player-title').textContent=referenceName(item);
- const width=Number(item.metadados?.largura),height=Number(item.metadados?.altura);
- player.style.setProperty('--video-ratio',width>0&&height>0?String(width/height):'1.777778');
+ const stage=document.createElement('div');stage.className=poster.className+' inline-player';
  const video=document.createElement('video');
  video.controls=true;video.playsInline=true;video.preload='metadata';video.autoplay=true;
  video.setAttribute('aria-label','Reproduzir '+item.nome);
  if(item.poster)video.poster=item.poster;
- video.addEventListener('error',()=>{if(video.hasAttribute('src'))$('#player-status').hidden=false;});
+ const status=document.createElement('div');status.className='inline-video-error';status.hidden=true;
+ status.innerHTML='<p role="status">Não foi possível carregar o vídeo.</p><button data-play="'+esc(id)+'">Tentar novamente</button>';
+ video.addEventListener('error',()=>{if(video.hasAttribute('src'))status.hidden=false;});
  video.src=item.video_player_url;
- player.querySelector('.player-media').appendChild(video);
- $('#player-reference').dataset.reference=id;
- if(!player.open)player.showModal();document.body.classList.add('video-open');
+ stage.append(video,status);poster.replaceWith(stage);
+ inlinePlayer={id,video,stage,poster};
+ video.focus({preventScroll:true});
  video.play().catch(()=>{});
 }
-$('#retry-player').onclick=()=>{if(playingId)openPlayer(playingId);};
-$('#close-player').onclick=()=>player.close();
-player.addEventListener('click',event=>{if(event.target===player)player.close();});
-player.addEventListener('close',()=>{
- clearPlayerMedia();document.body.classList.remove('video-open');
- const poster=playingId?document.querySelector('.card[data-id="'+playingId+'"] .poster'):null;
- playingId=null;poster?.focus({preventScroll:true});
-});
 card=function(raw){
  const item=effective(raw),url=externalLink(item),hidden=hiddenIds.has(item.id),id=esc(item.id),name=esc(item.nome),video=item.tipo==='video';
  const image=item.poster?'<img loading="lazy" decoding="async" src="'+esc(item.poster)+'" alt="'+name+'">':
@@ -61,6 +53,7 @@ card=function(raw){
  return '<article class="card" data-id="'+id+'" data-kind="'+esc(item.tipo)+'">'+poster+'<div class="card-body"><div class="card-heading"><h2 title="'+name+'">'+esc(referenceName(item))+'</h2><details class="card-menu"><summary aria-label="Mais opções para '+name+'">⋯</summary><div class="card-menu-panel"><button data-open="'+id+'">Ver detalhes ↗</button><span class="menu-label">Avaliação</span><div class="actions" role="group" aria-label="Avaliar '+name+'">'+quality+'</div><span class="menu-label">Uso</span><div class="actions usage" role="group" aria-label="Uso de '+name+'">'+usage+'</div>'+(hidden?'':'<button class="remove-action" data-hide="'+id+'">Remover da minha biblioteca</button>')+'</div></details></div><div class="card-meta"><span>'+esc(labels[item.tipo])+'</span>'+(item.qualidade==='bom'?'<span class="picked">Boa referência ✓</span>':'')+'</div>'+(video&&!url?'<p class="small-muted">Link do vídeo em preparação.</p>':'')+(hidden?'<button class="reference-action" data-restore="'+id+'">Restaurar na minha biblioteca <span aria-hidden="true">↩</span></button>':'<button class="reference-action" data-reference="'+id+'">Usar referência <span aria-hidden="true">↗</span></button>')+'</div></article>';
 };
 render=function(){
+ stopInlinePlayer();
  for(const row of rows)row.situacao=hiddenIds.has(row.id)?'oculto':'ativo';
  studentRender();
  $('#save-state').hidden=storageOK&&!Object.keys(marks).length;
@@ -70,7 +63,7 @@ render=function(){
 fillDetail=function(id){
  studentDetail(id);const item=effective(byId.get(id)),url=externalLink(item);
  const panel=document.createElement('div');panel.className='detail-controls';panel.style.marginBottom='18px';
- panel.innerHTML=(url?(item.tipo==='video'?'<button data-play="'+id+'">Assistir</button>':'<a class="detail-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a>'):'')+'<button data-reference="'+id+'">Usar como referência ↗</button>';
+ panel.innerHTML=(url?(item.tipo==='video'?'<button data-play="'+id+'">Assistir no card</button>':'<a class="detail-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a>'):'')+'<button data-reference="'+id+'">Usar como referência ↗</button>';
  if(item.poster){const image=document.createElement('img');image.className='preview-media';image.src=item.poster;image.alt=item.nome;$('#detail-body').prepend(image);}
  $('#detail-body').prepend(panel);
 };
@@ -83,7 +76,7 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.library-menu[open],.card-menu[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary').focus();});});
 document.addEventListener('click',async event=>{
- const play=event.target.closest('[data-play]');if(play){openPlayer(play.dataset.play);return;}
+ const play=event.target.closest('[data-play]');if(play){playInline(play.dataset.play);return;}
  const hide=event.target.closest('[data-hide]'),restore=event.target.closest('[data-restore]'),reference=event.target.closest('[data-reference]');
  if(hide||restore){const id=hide?.dataset.hide||restore.dataset.restore;if(hide)hiddenIds.add(id);else hiddenIds.delete(id);try{localStorage.setItem(HIDDEN_KEY,JSON.stringify([...hiddenIds]));}catch(error){toast('O navegador não conseguiu guardar essa alteração.');}render();return;}
  if(!reference)return;

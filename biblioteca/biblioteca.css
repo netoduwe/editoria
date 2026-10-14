@@ -95,16 +95,9 @@ a.poster:hover { text-decoration: none; }
 .placeholder span { font-size: 9px; letter-spacing: .5px; line-height: 1.6; }
 .footer { padding: 24px 0; margin-top: 36px; font-size: 10px; gap: 20px; }
 #coverage { display: none; }
-body.video-open { overflow: hidden; }
-#player { width: min(1000px, calc((100dvh - 150px) * var(--video-ratio, 1.777778)), calc(100vw - 32px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); overflow: hidden; }
-#player::backdrop { background: #000c; }
-.player-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 10px 9px 16px; }
-.player-head h2 { font-size: 12px; line-height: 1.4; font-weight: 500; margin: 0; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-#close-player { flex-shrink: 0; width: 36px; height: 36px; padding: 0; font-size: 22px; border: 0; background: transparent; color: var(--muted); }
-.player-stage { position: relative; width: 100%; aspect-ratio: var(--video-ratio, 1.777778); background: #000; }
-.player-media video { position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: #000; object-fit: contain; }
-#player-status:not([hidden]) { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; padding: 20px; text-align: center; background: #111e; font-size: 12px; }
-.player-footer { padding: 10px; }
+.inline-player::after { display: none; }
+.inline-player video { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: inherit; background: #000; object-fit: contain; }
+.inline-video-error:not([hidden]) { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; padding: 14px; text-align: center; background: #111e; font-size: 11px; }
 @media (hover: hover) and (pointer: fine) {
   .poster:hover img { opacity: .86; }
   summary:hover { background: var(--surface2); color: var(--ink); }

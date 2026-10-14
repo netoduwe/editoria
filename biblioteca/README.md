@@ -20,7 +20,7 @@ Abra http://127.0.0.1:9127/. Isso usa apenas o Node já instalado: não roda o s
 
 ## Usar uma referência
 
-1. Escolha um vídeo e clique em **Assistir**. O player abre sobre o feed, na própria biblioteca, com controles de reprodução e tela cheia. Feche pelo **×**, pela tecla Escape ou clicando fora da janela; fechar interrompe a reprodução. O acesso depende das permissões que o professor configurou no Drive.
+1. Clique na capa de um vídeo para reproduzir no próprio card, mantendo seu tamanho e sua posição no feed. Use os controles do vídeo para pausar e avançar. Ao iniciar outro card, a reprodução anterior é interrompida. O acesso depende das permissões que o professor configurou no Drive.
 2. Clique em **Usar referência** e cole o pedido no Claude Code/Codex junto do caminho do seu bruto.
 3. O agente estuda a linguagem de edição e aplica a sua marca. Para analisar movimento, cortes e áudio, pode ser necessário baixar somente o vídeo escolhido para `referencias/estilos/`. Se o Drive pedir acesso, forneça o arquivo ao agente.
 
