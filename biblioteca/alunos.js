@@ -14,11 +14,47 @@ function referenceName(item){
  if(name===name.toUpperCase())name=name.toLocaleLowerCase('pt-BR').replace(/\b(img|cta|gpt|sfx)\b/gi,word=>word.toUpperCase());
  return name.charAt(0).toLocaleUpperCase('pt-BR')+name.slice(1);
 }
+const player=document.createElement('dialog');
+player.id='player';player.setAttribute('aria-labelledby','player-title');
+player.innerHTML='<div class="player-head"><h2 id="player-title"></h2><button id="close-player" aria-label="Fechar vídeo">×</button></div><div class="player-stage"><div class="player-media"></div><div id="player-status" hidden><p role="status">Não foi possível carregar o vídeo.</p><button id="retry-player">Tentar novamente</button></div></div><div class="player-footer"><button class="reference-action" id="player-reference">Usar referência <span aria-hidden="true">↗</span></button></div>';
+document.body.appendChild(player);
+let playingId=null;
+function clearPlayerMedia(){
+ const video=player.querySelector('video');
+ if(video){video.pause();video.removeAttribute('src');video.load();}
+ player.querySelector('.player-media').replaceChildren();
+}
+function openPlayer(id){
+ const item=byId.get(id);if(!item?.video_player_url){toast('Vídeo ainda não disponível.');return;}
+ if($('#detail').open)closeDetail();
+ clearPlayerMedia();$('#player-status').hidden=true;
+ playingId=id;$('#player-title').textContent=referenceName(item);
+ const width=Number(item.metadados?.largura),height=Number(item.metadados?.altura);
+ player.style.setProperty('--video-ratio',width>0&&height>0?String(width/height):'1.777778');
+ const video=document.createElement('video');
+ video.controls=true;video.playsInline=true;video.preload='metadata';video.autoplay=true;
+ video.setAttribute('aria-label','Reproduzir '+item.nome);
+ if(item.poster)video.poster=item.poster;
+ video.addEventListener('error',()=>{if(video.hasAttribute('src'))$('#player-status').hidden=false;});
+ video.src=item.video_player_url;
+ player.querySelector('.player-media').appendChild(video);
+ $('#player-reference').dataset.reference=id;
+ if(!player.open)player.showModal();document.body.classList.add('video-open');
+ video.play().catch(()=>{});
+}
+$('#retry-player').onclick=()=>{if(playingId)openPlayer(playingId);};
+$('#close-player').onclick=()=>player.close();
+player.addEventListener('click',event=>{if(event.target===player)player.close();});
+player.addEventListener('close',()=>{
+ clearPlayerMedia();document.body.classList.remove('video-open');
+ const poster=playingId?document.querySelector('.card[data-id="'+playingId+'"] .poster'):null;
+ playingId=null;poster?.focus({preventScroll:true});
+});
 card=function(raw){
  const item=effective(raw),url=externalLink(item),hidden=hiddenIds.has(item.id),id=esc(item.id),name=esc(item.nome),video=item.tipo==='video';
  const image=item.poster?'<img loading="lazy" decoding="async" src="'+esc(item.poster)+'" alt="'+name+'">':
   '<div class="placeholder"><svg viewBox="0 0 52 52" fill="none" stroke="currentColor" aria-hidden="true">'+(icons[item.tipo]||icons.asset)+'</svg><span>'+esc(labels[item.tipo])+'<br>'+esc(item.origem)+'</span></div>';
- const poster=video&&url?'<a class="poster" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" aria-label="Assistir '+name+' no Drive">'+image+(duration(item)?'<span class="duration">'+duration(item)+'</span>':'')+'<span class="drive-label"><svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="m3 1 8 5-8 5z"/></svg>Assistir no Drive</span></a>':
+ const poster=video&&url?'<button class="poster" data-play="'+id+'" aria-label="Assistir '+name+' na biblioteca">'+image+(duration(item)?'<span class="duration">'+duration(item)+'</span>':'')+'<span class="drive-label"><svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="m3 1 8 5-8 5z"/></svg>Assistir</span></button>':
   '<button class="poster" data-open="'+id+'" aria-label="Ver '+name+'">'+image+'</button>';
  const quality=[['bom','Bom'],['ruim','Ruim'],['a_avaliar','A avaliar']].map(([value,label])=>'<button data-mark="'+id+'" data-key="qualidade" data-value="'+value+'" class="'+(item.qualidade===value?'chosen-'+value:'')+'" aria-pressed="'+(item.qualidade===value)+'">'+label+'</button>').join('');
  const usage=[['usado','Usado'],['nao_usado','Não usado']].map(([value,label])=>'<button data-mark="'+id+'" data-key="uso" data-value="'+value+'" class="'+(item.uso===value?'chosen-'+value:'')+'" aria-pressed="'+(item.uso===value)+'">'+label+'</button>').join('');
@@ -34,7 +70,7 @@ render=function(){
 fillDetail=function(id){
  studentDetail(id);const item=effective(byId.get(id)),url=externalLink(item);
  const panel=document.createElement('div');panel.className='detail-controls';panel.style.marginBottom='18px';
- panel.innerHTML=(url?'<a class="detail-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+(item.tipo==='video'?'Assistir no Drive':'Abrir fonte')+' ↗</a>':'')+'<button data-reference="'+id+'">Usar como referência ↗</button>';
+ panel.innerHTML=(url?(item.tipo==='video'?'<button data-play="'+id+'">Assistir</button>':'<a class="detail-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Abrir fonte ↗</a>'):'')+'<button data-reference="'+id+'">Usar como referência ↗</button>';
  if(item.poster){const image=document.createElement('img');image.className='preview-media';image.src=item.poster;image.alt=item.nome;$('#detail-body').prepend(image);}
  $('#detail-body').prepend(panel);
 };
@@ -47,6 +83,7 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.library-menu[open],.card-menu[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary').focus();});});
 document.addEventListener('click',async event=>{
+ const play=event.target.closest('[data-play]');if(play){openPlayer(play.dataset.play);return;}
  const hide=event.target.closest('[data-hide]'),restore=event.target.closest('[data-restore]'),reference=event.target.closest('[data-reference]');
  if(hide||restore){const id=hide?.dataset.hide||restore.dataset.restore;if(hide)hiddenIds.add(id);else hiddenIds.delete(id);try{localStorage.setItem(HIDDEN_KEY,JSON.stringify([...hiddenIds]));}catch(error){toast('O navegador não conseguiu guardar essa alteração.');}render();return;}
  if(!reference)return;

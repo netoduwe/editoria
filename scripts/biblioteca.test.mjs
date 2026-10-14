@@ -18,7 +18,9 @@ test('aceita links de arquivo do Drive e recusa pastas/URLs inseguras', () => {
   assert.equal(driveLink(null), null);
   assert.equal(driveLink(drive + '?usp=sharing'), drive);
   assert.equal(driveLink('https://drive.google.com/open?id=ExampleFile_123456&resourcekey=test'), drive + '?resourcekey=test');
-  for (const value of ['javascript:alert(1)', 'http://drive.google.com/file/d/ExampleFile_123456/view', 'https://drive.google.com.evil.test/file/d/ExampleFile_123456/view', 'https://drive.google.com/drive/folders/ExampleFile_123456', 'https://user:password@drive.google.com/file/d/ExampleFile_123456/view']) assert.throws(() => driveLink(value));
+  for (const value of ['javascript:alert(1)', 'http://drive.google.com/file/d/ExampleFile_123456/view', 'https://drive.google.com.evil.test/file/d/ExampleFile_123456/view', 'https://drive.google.com/drive/folders/ExampleFile_123456', 'https://user:password@drive.google.com/file/d/ExampleFile_123456/view']) {
+    assert.throws(() => driveLink(value));
+  }
 });
 
 test('links por ID/nome; preferências não alteram catálogo; servidor só lê a biblioteca', async () => {
@@ -34,6 +36,7 @@ test('links por ID/nome; preferências não alteram catálogo; servidor só lê 
     assert.equal((await catalog(folder)).itens[0].disponivel, false);
     assert.equal(await setLink('example.mp4', drive, folder), 'abc');
     assert.equal((await catalog(folder)).itens[0].video_url, drive);
+    assert.equal((await catalog(folder)).itens[0].video_player_url, '/video/abc');
     assert.equal(await readFile(join(folder, 'catalogo.json'), 'utf8'), original);
     const before = await readFile(join(folder, 'videos.json'), 'utf8');
     await assert.rejects(() => setLink('not-found', drive, folder));
@@ -54,6 +57,58 @@ test('links por ID/nome; preferências não alteram catálogo; servidor só lê 
       call.on('error', reject); call.end();
     });
     assert.equal(badHost, 403);
+  } finally {
+    if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
+    await removeFixture(folder);
+  }
+});
+
+test('player transmite intervalos de vídeo, confirma arquivos grandes e recusa respostas HTML', async () => {
+  const folder = await mkdtemp(join(tmpdir(), 'editoria-biblioteca-'));
+  const id = 'a'.repeat(20), skillId = 'b'.repeat(20), calls = [];
+  let server, mode = 'video';
+  try {
+    await writeFile(join(folder, 'catalogo.json'), JSON.stringify({ itens: [{ id, tipo: 'video' }, { id: skillId, tipo: 'skill' }] }));
+    await writeFile(join(folder, 'videos.json'), JSON.stringify({ [id]: { arquivo: 'example.mp4', url: drive + '?resourcekey=test' } }));
+    const fetchVideo = async (url, options) => {
+      calls.push({ url: url.href, headers: options.headers });
+      assert.equal(url.origin, 'https://drive.usercontent.google.com');
+      assert.equal(url.searchParams.get('id'), 'ExampleFile_123456');
+      assert.equal(url.searchParams.get('resourcekey'), 'test');
+      assert.deepEqual(Object.keys(options.headers).sort(), ['Accept-Encoding', 'Range']);
+      if (mode === 'large' && !url.searchParams.has('confirm')) {
+        return new Response('<form id="download-form" action="https://untrusted.test/"><input name="id" value="OtherFile_123456"><input name="confirm" value="t"><input name="uuid" value="public-confirmation"></form>', { headers: { 'Content-Type': 'text/html' } });
+      }
+      if (mode === 'large') assert.equal(url.searchParams.get('uuid'), 'public-confirmation');
+      if (mode === 'html') return new Response('<html>Access denied</html>', { headers: { 'Content-Type': 'text/html' } });
+      if (options.headers.Range === 'bytes=99-') return new Response(null, { status: 416, headers: { 'Content-Range': 'bytes */10' } });
+      assert.equal(options.headers.Range, 'bytes=2-5');
+      return new Response(Buffer.from('2345'), { status: 206, headers: { 'Content-Type': 'video/mp4', 'Content-Range': 'bytes 2-5/10', 'Content-Length': '4', 'Content-Disposition': 'attachment' } });
+    };
+    server = createLibraryServer({ folder, fetchVideo });
+    server.listen(0, '127.0.0.1'); await once(server, 'listening');
+    const base = `http://127.0.0.1:${server.address().port}/video/`;
+    const response = await fetch(base + id, { headers: { Range: 'bytes=2-5' } });
+    assert.equal(response.status, 206);
+    assert.equal(response.headers.get('content-type'), 'video/mp4');
+    assert.equal(response.headers.get('content-range'), 'bytes 2-5/10');
+    assert.equal(response.headers.get('content-disposition'), null);
+    assert.equal(await response.text(), '2345');
+    const head = await fetch(base + id, { method: 'HEAD', headers: { Range: 'bytes=2-5' } });
+    assert.equal(head.status, 206); assert.equal(await head.text(), '');
+    const before = calls.length;
+    assert.equal((await fetch(base + skillId)).status, 404);
+    assert.equal((await fetch(base + 'c'.repeat(20))).status, 404);
+    assert.equal((await fetch(base + id, { headers: { Range: 'items=0-3' } })).status, 416);
+    assert.equal(calls.length, before);
+    assert.equal((await fetch(base + id, { headers: { Range: 'bytes=99-' } })).headers.get('content-range'), 'bytes */10');
+    mode = 'large';
+    const large = await fetch(base + id, { headers: { Range: 'bytes=2-5' } });
+    assert.equal(large.status, 206); assert.equal(await large.text(), '2345');
+    assert.equal(new URL(calls.at(-1).url).searchParams.get('confirm'), 't');
+    mode = 'html';
+    const failure = await fetch(base + id, { headers: { Range: 'bytes=2-5' } });
+    assert.equal(failure.status, 502); assert.ok(!(await failure.text()).includes('<html>'));
   } finally {
     if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
     await removeFixture(folder);

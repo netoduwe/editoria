@@ -1,6 +1,8 @@
 # Biblioteca de referências
 
-O feed mostra referências finais de vídeo e motion, capas e fontes de ferramentas. Os vídeos ficam no Google Drive e são abertos somente quando você clicar. O kit não baixa o acervo inteiro.
+O feed mostra referências finais de vídeo e motion, capas e fontes de ferramentas. Os vídeos ficam hospedados no Google Drive e são reproduzidos dentro da biblioteca quando você clicar. O kit não baixa o acervo inteiro.
+
+A reprodução usa o player do navegador, com transmissão pelo servidor local e suporte a avançar/voltar. Somente o vídeo escolhido é carregado; não há cópia permanente dos vídeos no kit. Mantenha o servidor da biblioteca aberto enquanto assiste.
 
 Os 27 vídeos selecionados estão vinculados aos cards. [Abrir a pasta de referências no Drive](https://drive.google.com/drive/folders/1mZuTPGsSfmNWfz6D_Rd3dly7nujfhSaQ).
 
@@ -18,7 +20,7 @@ Abra http://127.0.0.1:9127/. Isso usa apenas o Node já instalado: não roda o s
 
 ## Usar uma referência
 
-1. Escolha um vídeo e clique em **Assistir no Drive**. O acesso depende das permissões que o professor configurou no Drive.
+1. Escolha um vídeo e clique em **Assistir**. O player abre sobre o feed, na própria biblioteca, com controles de reprodução e tela cheia. Feche pelo **×**, pela tecla Escape ou clicando fora da janela; fechar interrompe a reprodução. O acesso depende das permissões que o professor configurou no Drive.
 2. Clique em **Usar referência** e cole o pedido no Claude Code/Codex junto do caminho do seu bruto.
 3. O agente estuda a linguagem de edição e aplica a sua marca. Para analisar movimento, cortes e áudio, pode ser necessário baixar somente o vídeo escolhido para `referencias/estilos/`. Se o Drive pedir acesso, forneça o arquivo ao agente.
 

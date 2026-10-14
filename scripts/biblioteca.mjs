@@ -4,6 +4,8 @@ import { createServer } from 'node:http';
 import { readFile, writeFile, realpath, stat } from 'node:fs/promises';
 import { resolve, dirname, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = resolve(ROOT, 'biblioteca');
@@ -28,6 +30,7 @@ export async function catalog(folder = DATA) {
   for (const row of data.itens) {
     if (row.tipo !== 'video') continue;
     row.video_url = driveLink(links[row.id]?.url);
+    row.video_player_url = row.video_url ? `/video/${row.id}` : null;
     row.disponivel = Boolean(row.video_url);
     if (row.video_url) row.caminho = row.video_url;
   }
@@ -46,7 +49,75 @@ export async function setLink(idOrName, url, folder = DATA) {
   return ids[0];
 }
 
-export function createLibraryServer({ folder = DATA } = {}) {
+async function fetchDriveVideo(link, range, signal, fetchVideo) {
+  const source = new URL(driveLink(link));
+  const url = new URL('https://drive.usercontent.google.com/download');
+  url.searchParams.set('id', source.pathname.split('/')[3]);
+  url.searchParams.set('export', 'download');
+  if (source.searchParams.has('resourcekey')) url.searchParams.set('resourcekey', source.searchParams.get('resourcekey'));
+  const options = { headers: { 'Accept-Encoding': 'identity', ...(range ? { Range: range } : {}) }, signal };
+  let upstream = await fetchVideo(url, options);
+  if (upstream.status === 200 && upstream.headers.get('content-type')?.includes('text/html')) {
+    // Large public files return a download confirmation form instead of bytes.
+    // Use only its confirmation fields; never forward cookies or login credentials.
+    const chunks = []; let size = 0;
+    for await (const chunk of upstream.body) {
+      size += chunk.length;
+      if (size > 65536) throw new Error('Resposta de confirmação inesperada.');
+      chunks.push(chunk);
+    }
+    const html = Buffer.concat(chunks).toString('utf8');
+    const form = html.match(/<form\b(?=[^>]*\bid=["']download-form["'])[^>]*>[\s\S]*?<\/form>/i)?.[0];
+    if (!form) throw new Error('O Drive não disponibilizou o vídeo público.');
+    let confirmed = false;
+    for (const input of form.matchAll(/<input\b[^>]*>/gi)) {
+      const fields = Object.fromEntries([...input[0].matchAll(/([\w-]+)=["']([^"']*)["']/g)].map(match => [match[1], match[2]]));
+      if (['confirm', 'uuid'].includes(fields.name) && /^[\w-]{1,200}$/.test(fields.value || '')) {
+        url.searchParams.set(fields.name, fields.value);
+        if (fields.name === 'confirm') confirmed = true;
+      }
+    }
+    if (!confirmed) throw new Error('Confirmação de vídeo indisponível.');
+    upstream = await fetchVideo(url, options);
+  }
+  return upstream;
+}
+
+async function streamVideo(request, response, link, fetchVideo) {
+  const range = request.headers.range;
+  if (range && (range.length > 80 || !/^bytes=(?:\d+-\d*|-\d+)$/.test(range))) {
+    response.writeHead(416); response.end(); return;
+  }
+  const controller = new AbortController();
+  const abort = () => { if (!response.writableEnded) controller.abort(); };
+  response.once('close', abort);
+  try {
+    const upstream = await fetchDriveVideo(link, range, controller.signal, fetchVideo);
+    if (upstream.status === 416) {
+      const headers = upstream.headers.has('content-range') ? { 'Content-Range': upstream.headers.get('content-range') } : {};
+      await upstream.body?.cancel(); response.writeHead(416, headers); response.end(); return;
+    }
+    const type = upstream.headers.get('content-type')?.split(';')[0];
+    if (![200, 206].includes(upstream.status) || !upstream.body || !(type?.startsWith('video/') || type === 'application/octet-stream')) {
+      await upstream.body?.cancel(); throw new Error('Vídeo não disponível no Drive.');
+    }
+    const headers = { 'Content-Type': type === 'application/octet-stream' ? 'video/mp4' : type,
+      'Accept-Ranges': 'bytes', 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
+    for (const name of ['Content-Length', 'Content-Range', 'ETag', 'Last-Modified']) {
+      if (upstream.headers.has(name)) headers[name] = upstream.headers.get(name);
+    }
+    response.writeHead(upstream.status, headers);
+    if (request.method === 'HEAD') { await upstream.body.cancel(); response.end(); return; }
+    await pipeline(Readable.fromWeb(upstream.body), response);
+  } catch (error) {
+    if (!controller.signal.aborted) {
+      if (response.headersSent) response.destroy();
+      else { response.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' }); response.end('Não foi possível carregar este vídeo. Tente novamente.'); }
+    }
+  } finally { response.off('close', abort); }
+}
+
+export function createLibraryServer({ folder = DATA, fetchVideo = fetch } = {}) {
   return createServer(async (request, response) => {
     try {
       // Read-only server: assessments and hidden cards belong to this browser.
@@ -58,6 +129,12 @@ export function createLibraryServer({ folder = DATA } = {}) {
         response.writeHead(403); response.end(); return;
       }
       const route = new URL(request.url, address).pathname;
+      const videoId = route.match(/^\/video\/([a-f0-9]{20})$/)?.[1];
+      if (videoId) {
+        const item = (await catalog(folder)).itens.find(row => row.id === videoId && row.tipo === 'video');
+        if (!item?.video_url) { response.writeHead(404); response.end(); return; }
+        await streamVideo(request, response, item.video_url, fetchVideo); return;
+      }
       let body, type;
       if (route === '/' || route === '/index.html') {
         const data = JSON.stringify(await catalog(folder)).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');

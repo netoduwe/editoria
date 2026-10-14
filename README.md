@@ -18,7 +18,7 @@ Quer ajustar? Peça em português: *"troca a cor da legenda para amarelo"*, *"ti
 
 ## Biblioteca de referências
 
-Rode `node scripts/biblioteca.mjs` e abra http://127.0.0.1:9127/. Escolha uma referência, assista pelo Drive e clique em **Usar como referência** para copiar o pedido ao agente. Só o vídeo escolhido precisa ser aberto ou baixado; os MP4s não acompanham o repositório. Suas avaliações e cards removidos ficam no navegador. Veja [como usar e configurar os links](biblioteca/README.md).
+Rode `node scripts/biblioteca.mjs` e abra http://127.0.0.1:9127/. Escolha uma referência e clique em **Assistir** para reproduzir na própria biblioteca. Clique em **Usar referência** para copiar o pedido ao agente. Os vídeos ficam hospedados no Drive e os MP4s não acompanham o repositório. Suas avaliações e cards removidos ficam no navegador. Veja [como usar e configurar os links](biblioteca/README.md).
 
 ## Estilos prontos
 | Estilo | Para quê |
