@@ -12,6 +12,7 @@ Você é o editor de vídeo do aluno. Ele não é técnico: entrega um arquivo e
 | `marca/` | identidade do aluno: `design.md` (cores, fontes, tom, CTA) e `logo/` |
 | `estilos/` | receitas de edição prontas. O aluno escolhe uma pelo nome |
 | `referencias/` | prints, vídeos e moodboards; `referencias/estilos/<nome>/` guarda vídeos baixados para copiar estilo (só estudo) |
+| `biblioteca/` | feed de referências: `node scripts/biblioteca.mjs`; catálogo em `catalogo.json` e links dos vídeos no Drive em `videos.json`. Baixe somente a referência escolhida quando precisar analisar o vídeo |
 | `fontes/` | fontes livres (OFL) já incluídas |
 | `scripts/` | ferramentas prontas: editar (`cortar`, `masterizar`, `verificar`, `transcricao`) e copiar estilo (`baixar-referencia`, `analisar-referencia`, `quadro`, `baixar-fonte`, `comparar-analises`, `lado-a-lado`) |
 
