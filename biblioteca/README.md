@@ -2,6 +2,8 @@
 
 O feed mostra referências finais de vídeo e motion, capas e fontes de ferramentas. Os vídeos ficam no Google Drive e são abertos somente quando você clicar. O kit não baixa o acervo inteiro.
 
+Há uma versão por edição: variações apenas de proporção (9:16/4:5), música ou mixagem não repetem cards. A curadoria prioriza a final aprovada/confirmada, a revisão mais recente, o formato 9:16 e a mixagem completa. Referências com conteúdo ou linguagem diferentes continuam separadas.
+
 ## Abrir
 
 Na pasta do kit, rode:
