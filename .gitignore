@@ -1,0 +1,11 @@
+# vídeos e trabalhos do aluno nunca vão para o Git
+entrada/*
+saida/*
+projetos/*
+referencias/*
+marca/logo/*
+!*/.gitkeep
+!marca/logo/.gitkeep
+node_modules/
+.DS_Store
+Thumbs.db
