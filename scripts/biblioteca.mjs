@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = resolve(ROOT, 'biblioteca');
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.jpg': 'image/jpeg' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.jpg': 'image/jpeg' };
 
 export function driveLink(value) {
   if (!value) return null;
@@ -66,12 +66,12 @@ export function createLibraryServer({ folder = DATA } = {}) {
       } else if (route === '/catalogo.json') {
         body = Buffer.from(JSON.stringify(await catalog(folder), null, 2)); type = TYPES['.json'];
       } else {
-        const allowed = ['/alunos.js', '/README.md', '/videos.json'].includes(route) || /^\/posters\/[a-f0-9-]+\.jpg$/.test(route);
+        const allowed = ['/alunos.js', '/biblioteca.css', '/README.md', '/videos.json'].includes(route) || /^\/posters\/[a-f0-9-]+\.jpg$/.test(route);
         if (!allowed) { response.writeHead(404); response.end(); return; }
         const root = await realpath(folder), path = await realpath(resolve(folder, route.slice(1)));
         if (!path.startsWith(root + sep) || !(await stat(path)).isFile()) throw new Error('Arquivo fora da biblioteca.');
         body = await readFile(path);
-        type = route.endsWith('.jpg') ? TYPES['.jpg'] : route.endsWith('.js') ? TYPES['.js'] : route.endsWith('.json') ? TYPES['.json'] : 'text/plain; charset=utf-8';
+        type = route.endsWith('.jpg') ? TYPES['.jpg'] : route.endsWith('.js') ? TYPES['.js'] : route.endsWith('.css') ? TYPES['.css'] : route.endsWith('.json') ? TYPES['.json'] : 'text/plain; charset=utf-8';
       }
       response.writeHead(200, { 'Content-Type': type, 'Content-Length': body.length, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' });
       response.end(request.method === 'HEAD' ? undefined : body);

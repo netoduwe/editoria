@@ -19,12 +19,12 @@ Abra http://127.0.0.1:9127/. Isso usa apenas o Node já instalado: não roda o s
 ## Usar uma referência
 
 1. Escolha um vídeo e clique em **Assistir no Drive**. O acesso depende das permissões que o professor configurou no Drive.
-2. Clique em **Usar como referência** e cole o pedido no Claude Code/Codex junto do caminho do seu bruto.
+2. Clique em **Usar referência** e cole o pedido no Claude Code/Codex junto do caminho do seu bruto.
 3. O agente estuda a linguagem de edição e aplica a sua marca. Para analisar movimento, cortes e áudio, pode ser necessário baixar somente o vídeo escolhido para `referencias/estilos/`. Se o Drive pedir acesso, forneça o arquivo ao agente.
 
 As imagens do feed são capas, não projetos editáveis. Vídeos de terceiros são referências de estudo: seus trechos, áudio e assets não entram no vídeo do aluno.
 
-Avaliações e **Remover da minha biblioteca** ficam no navegador do aluno. **Removidos por mim** permite restaurar um card. Essas ações não alteram o catálogo da turma, os arquivos do Drive ou a marca. Exportar/importar marcações transfere as avaliações entre navegadores; os cards removidos permanecem no navegador em que foram removidos.
+O menu **⋯** de cada card reúne detalhes, avaliações e **Remover da minha biblioteca**. **Removidos por mim** permite restaurar um card. Essas escolhas ficam no navegador do aluno e não alteram o catálogo da turma, os arquivos do Drive ou a marca. O menu **⋯** do topo permite exportar/importar as avaliações entre navegadores; os cards removidos permanecem no navegador em que foram removidos.
 
 ## Configuração do professor
 
