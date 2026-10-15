@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Nivela o áudio do vídeo final para redes sociais (-14 LUFS, pico -1 dBTP) sem reencodar a imagem.
+// Nivela o áudio do vídeo final para redes sociais (-14 LUFS, pico ≤ -1 dBTP) sem reencodar a imagem.
+// Mira -1.5 dBTP: a compressão AAC sobe o pico uns décimos depois do loudnorm.
 // Uso: node scripts/masterizar.mjs <render.mp4> <final.mp4>
 import { spawnSync } from "node:child_process";
 
@@ -8,7 +9,7 @@ if (!entrada || !saida || entrada === saida) {
   console.error("Uso: node scripts/masterizar.mjs <render.mp4> <final.mp4>   (arquivos diferentes)");
   process.exit(1);
 }
-const alvo = "I=-14:TP=-1:LRA=11";
+const alvo = "I=-14:TP=-1.5:LRA=11";
 const medir = spawnSync("ffmpeg", ["-hide_banner", "-i", entrada, "-vn", "-af", `loudnorm=${alvo}:print_format=json`, "-f", "null", "-"], { encoding: "utf8" });
 const txt = medir.stderr ?? "";
 const json = txt.slice(txt.lastIndexOf("{"), txt.lastIndexOf("}") + 1);

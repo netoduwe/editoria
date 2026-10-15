@@ -1,33 +1,42 @@
 ---
 name: editar-video
-description: Edita um vídeo falado do aluno (Reels, Shorts, TikTok, aula, anúncio) do bruto ao MP4 final — transcreve, escolhe as melhores tomadas, corta, monta no HyperFrames num estilo da pasta estilos/, legenda, masteriza e entrega em saida/. Use quando o aluno pedir "edita", "corta", "legenda", "deixa bonito", entregar um vídeo em entrada/ ou colar um pedido da biblioteca ("edita no estilo…", "usa o meu projeto … como base").
+description: Edita um vídeo falado do aluno (Reels, Shorts, TikTok, aula, anúncio) do bruto ao MP4 final — transcreve, escolhe as melhores tomadas, corta pela energia da voz, monta no HyperFrames num estilo da pasta estilos/ (com o template do estilo, quando existe), mostra a prancha das cenas para aprovação, legenda, masteriza, entrega em saida/ e guarda na biblioteca. Use quando o aluno pedir "edita", "corta", "legenda", "deixa bonito", mandar um vídeo (em entrada/ ou o caminho de qualquer pasta) ou colar um pedido da biblioteca ("edita no estilo…", "com o template…", "usa o meu projeto … como base").
 ---
 
 # Editar vídeo (bruto → MP4 pronto)
 
 Siga as etapas em ordem. Trabalhe em `projetos/<nome>/` (nome curto, sem espaço, a partir do arquivo). Tempos sempre explícitos: **bruto** (segundos do arquivo original) ou **timeline** (segundos do vídeo editado).
 
+O bruto pode estar em `entrada/` ou em qualquer pasta (Downloads, Google Drive no computador): use o caminho como está, entre aspas, sem copiar nem mover. Nunca escreva ao lado dele. Se ele estiver fora do kit, avise que o projeto guardado depende desse arquivo para renderizar de novo.
+
 ## 1. Entender o material
 ```bash
-node scripts/verificar.mjs entrada/<arquivo> --rapido
+node scripts/verificar.mjs "<bruto>" --rapido
 ```
-Anote orientação real (iPhone grava girado: confie em `resolucao_exibida`), fps, duração. Leia `marca/design.md` e a receita `estilos/<estilo>.md`. Se a receita começa com bloco YAML, **ele é a especificação**: tamanhos, posições, fontes, tempos de animação, cores por papel e os alvos de ritmo (`plano_medio_s`, `cortes_por_minuto`, `animacoes_por_minuto`, `pausa_maxima_mantida_s`). Cores com `usar: marca.<papel>` vêm de `marca/design.md`.
+Anote orientação real (iPhone grava girado: confie em `resolucao_exibida`), fps, duração. **Abra a folha de quadros**: objetos em cena (placa escrita, produto, tela, papel na mão) mudam o layout e onde vai a legenda — a legenda nunca cobre o objeto nem o rosto.
 
-Se o pedido veio da biblioteca, ele cita um ID ou `projetos/<nome>`:
+Leia `marca/design.md` e a receita `estilos/<estilo>.md`. Se a receita começa com bloco YAML, **ele é a especificação**: tamanhos, posições, fontes, tempos de animação, cores por papel e os alvos de ritmo (`plano_medio_s`, `cortes_por_minuto`, `animacoes_por_minuto`, `pausa_maxima_mantida_s`). Cores com `usar: marca.<papel>` vêm de `marca/design.md`. Se existir `templates/<estilo>/`, o passo 5 usa o template.
+
+Se o pedido veio da biblioteca, ele cita um ID, um template ou `projetos/<nome>`:
 - **Referência com estilo** ("edita … no estilo X") → use `estilos/X.md`; não precisa baixar a referência.
-- **Projeto como base** ("usa o meu projeto … como base") → crie um projeto novo e copie para ele a `composicao/` do projeto base (sem os vídeos de `assets/`) e o `design.md`. O corte e as legendas são refeitos com o vídeo novo; layout, cores, tipografia e movimento ficam iguais. Nunca altere o projeto base. Se ele estiver compactado, nada se perde: os arquivos pesados são do vídeo antigo.
+- **Template** ("edita … com o template X") → passo 5 com `templates/X/`.
+- **Projeto como base** ("usa o meu projeto … como base") → crie um projeto novo e copie para ele o `cenas.json` (ou a `composicao/`, sem os vídeos de `assets/`) do projeto base. O corte e as legendas são refeitos com o vídeo novo; layout, cores, tipografia e movimento ficam iguais. Nunca altere o projeto base.
 
 ## 2. Transcrever e ler como roteiro
 ```bash
-npx hyperframes transcribe entrada/<arquivo> --language pt --dir projetos/<nome>
-node scripts/transcricao.mjs projetos/<nome>/transcript.json --video entrada/<arquivo>
+npx hyperframes transcribe "<bruto>" --language pt --dir projetos/<nome>
+node scripts/transcricao.mjs projetos/<nome>/transcript.json --video "<bruto>"
 ```
 O relatório marca `⟲` (frase refeita depois) e `🔉` (bem mais baixa que as tomadas boas = ensaio, fala virada ou fora do microfone). Silêncios > 3 s podem esconder conversa de bastidor.
 
 ## 3. Decidir o corte
 - Para cada frase do roteiro, use a **última tomada completa** com volume normal. Descarte `🔉`, frases abortadas, instruções de quem está gravando ("fala de novo", "vai"), "ah tá" e afins.
 - Mantenha a ordem lógica do discurso. Não junte meia frase de um take com meia de outro, a menos que a emenda caia numa pausa natural.
-- Folga: comece ~0,12 s antes da primeira palavra e termine ~0,15 s depois da última. Não apague pausas internas < 0,35 s (é respiração/ritmo) — **exceto** se o estilo pedir corte mais seco (`pausa_maxima_mantida_s` menor): aí corte as pausas maiores que esse valor, sempre em silêncio real, nunca no meio de palavra.
+- **Os tempos da transcrição não servem para cortar**: ela estica a última palavra de cada frase (até 1 s) e às vezes adianta o início. Meça pela energia da voz nos trechos escolhidos:
+  ```bash
+  node scripts/pausas.mjs "<bruto>" 13.3-29.3 42.2-48.6 --min 0.25
+  ```
+  Use o **corte sugerido** (0,12 s antes da voz e 0,14 s depois) e as **pausas** listadas. Não apague pausas < 0,35 s (respiração/ritmo) — **exceto** se o estilo pedir corte mais seco (`pausa_maxima_mantida_s` menor): aí divida o trecho nas pausas maiores que esse valor, usando o "para cortar" do script.
 - **Pergunte ao aluno** só se houver escolha de conteúdo real: dois finais/CTAs diferentes, duas versões de uma informação (data, preço), ou algo que pareça errado. Ofereça as opções em uma mensagem. Se forem dois CTAs igualmente válidos, pode entregar as duas versões.
 
 Escreva `projetos/<nome>/edl.json`:
@@ -37,35 +46,52 @@ Escreva `projetos/<nome>/edl.json`:
 
 ## 4. Cortar e conferir o corte
 ```bash
-node scripts/cortar.mjs entrada/<arquivo> projetos/<nome>/edl.json projetos/<nome>/corte.mp4
+node scripts/cortar.mjs "<bruto>" projetos/<nome>/edl.json projetos/<nome>/corte.mp4
 npx hyperframes transcribe projetos/<nome>/corte.mp4 --language pt --dir projetos/<nome>/corte-transcricao
 node scripts/transcricao.mjs projetos/<nome>/corte-transcricao/transcript.json --video projetos/<nome>/corte.mp4
 ```
-A transcrição do corte precisa bater com o roteiro escolhido, sem palavra cortada no começo ou no fim de trecho e sem sobra de outro take. Se algo vazou, ajuste o `edl.json` e corte de novo. Essa transcrição (tempos de **timeline**) é a base das legendas e das animações.
+A transcrição do corte precisa bater com o roteiro escolhido, sem palavra cortada no começo ou no fim de trecho e sem sobra de outro take. Se algo vazou, ajuste o `edl.json` e corte de novo. Essa transcrição (tempos de **timeline**) é a base das legendas e das animações. Palavras que a transcrição errou se corrigem no `corrigir` do `cenas.json` (vale para a legenda e para o SRT).
 
-## 5. Montar no HyperFrames
+Se o estilo tem cabeça sobre o painel, já comece o recorte da pessoa **em segundo plano** (leva ~15 s por segundo de vídeo):
 ```bash
 npx hyperframes init projetos/<nome>/composicao --non-interactive --example=blank --skill=general-video
+mkdir -p projetos/<nome>/composicao/assets && cp projetos/<nome>/corte.mp4 projetos/<nome>/composicao/assets/
+npx hyperframes remove-background projetos/<nome>/composicao/assets/corte.mp4 -o projetos/<nome>/composicao/assets/pessoa.webm
 ```
-- Copie para `composicao/assets/`: `corte.mp4`, as fontes de `fontes/` que o estilo usa, a logo de `marca/logo/`. Copie `marca/design.md` para `composicao/design.md` (o HyperFrames trata como verdade da marca).
-- Carregue a skill `hyperframes` e siga `general-video` em modo automação, sem storyboard. Monte exatamente o que a receita do estilo descreve.
-- Áudio: o vídeo `corte.mp4` leva a voz (`data-has-audio="true"`). SFX só nos momentos que o estilo pede, cada um preso a um evento da tela (entrada de card, troca de layout) com o pico no quadro do evento; procure-os com a skill `media-use`. Sem música, a menos que o aluno peça ou a marca defina.
+
+## 5. Montar no HyperFrames
+**Com template** (`templates/<estilo>/` existe): escreva `projetos/<nome>/cenas.json` seguindo `templates/<estilo>/README.md` (exemplo completo em `exemplo-cenas.json`) e rode:
+```bash
+node templates/<estilo>/montar.mjs projetos/<nome>
+```
+O template aplica a marca, legendas sincronizadas, efeitos sonoros próprios (sem depender de login) e as regras de revisão (nenhuma tela começa vazia). Para mudar algo, edite `cenas.json` e rode de novo — nunca edite o `index.html` gerado.
+
+**Sem template**: crie a composição com `npx hyperframes init` (como acima), copie para `composicao/assets/` o `corte.mp4`, as fontes de `fontes/` e a logo de `marca/logo/`, e `marca/design.md` como `composicao/design.md`. Carregue a skill `hyperframes` e siga `general-video` em modo automação, sem storyboard, montando exatamente o que a receita descreve.
+- Áudio: a voz vem do corte; SFX só onde o estilo pede, cada um preso a um evento da tela com o pico no quadro do evento. A skill `media-use` só busca SFX com login no HeyGen; sem ele, gere efeitos curtos e graves com o FFmpeg (veja como em `templates/editorial-tech/montar.mjs`). Sem música, a menos que o aluno peça ou a marca defina.
 - Legendas: fragmentos de 1–4 palavras, quebrando em pontuação/pausa; artigo e preposição grudam na palavra seguinte; nunca um fragmento só com "a", "de", "que".
-- Recorte de pessoa (estilos com cabeça sobre painel): `npx hyperframes remove-background composicao/assets/corte.mp4 -o composicao/assets/pessoa.webm`.
 
-## 6. Revisar antes de renderizar
-Siga os passos 1–3 da skill `revisar-video`: `npx hyperframes check --at-transitions` sem erros, `npx hyperframes snapshot --at <meio de cada cena e em volta de cada troca> --describe false` (**abra e olhe** a `contact-sheet.jpg`: texto cortado, legenda em cima do rosto, cor ilegível, elemento sobrando, cena vazia, primeiro e último quadro) e os tempos de leitura. Se o estilo tem alvos de ritmo, a duração média dos planos e a frequência de entradas animadas devem ficar a ±25% do alvo; se ficar longe, adicione trocas de layout ou entradas nas palavras-chave. Corrija e repita.
+## 6. Prancha para aprovação (antes de qualquer render)
+Edição com cenas gráficas (template, cards, telas, split) **para aqui** até o aluno aprovar. Edição só com legenda pode seguir direto, a menos que o aluno peça a prancha.
+```bash
+cd projetos/<nome>/composicao
+npx hyperframes snapshot --at <meio de cada cena, separados por vírgula> --describe false -o ../prancha
+```
+Mostre ao aluno a `contact-sheet.jpg` da prancha e 1 linha por cena (tempo, o que aparece, qual fala). Ajuste o `cenas.json` até ele dizer "aprovado". A prancha é a própria edição: nunca mostre peças que não vão estar no vídeo.
 
-## 7. Renderizar e entregar
+## 7. Revisar antes de renderizar
+Siga os passos 1–3 da skill `revisar-video`: `npx hyperframes check --at-transitions` sem erros, quadros em volta de cada troca de cena (`snapshot --describe false`: texto cortado, legenda em cima do rosto, cor ilegível, elemento sobrando, tela vazia, primeiro e último quadro) e os tempos de leitura. Se o estilo tem alvos de ritmo, a duração média dos planos e a frequência de entradas animadas devem ficar a ±25% do alvo. Com template e cabeça sobre o painel, rode o `check` com a composição montada `--sem-cabeca` (o check trava com vídeo transparente) e depois monte de novo sem a opção.
+
+## 8. Renderizar e entregar
+Abra o preview sem perguntar (`npx hyperframes preview --background`) — o aluno pode ajustar texto e tempo ali — e renderize:
 ```bash
 npx hyperframes render --quality delivery --fps 30 -o ../render.mp4
 cd ../../.. && node scripts/masterizar.mjs projetos/<nome>/render.mp4 saida/<nome>.mp4
 node scripts/verificar.mjs saida/<nome>.mp4 --guias
 npx hyperframes transcribe projetos/<nome>/corte-transcricao/transcript.json --to srt -o saida/<nome>.srt
 ```
-`verificar` precisa mostrar `decodificacao: ok` e `alertas` vazio. Abra a folha com guias (`saida/<nome>.guias.jpg`): tudo legível em tamanho de celular e dentro da faixa vermelha (passos 4–5 da skill `revisar-video`).
+Se existir `corte-transcricao/transcript.corrigido.json` (o template grava quando há `corrigir`), use ele no SRT. `verificar` precisa mostrar `decodificacao: ok` e `alertas` vazio. Abra a folha com guias (`saida/<nome>.guias.jpg`): tudo legível em tamanho de celular e dentro da faixa vermelha (passos 4–5 da skill `revisar-video`).
 
-## 8. Guardar na biblioteca
+## 9. Guardar na biblioteca
 ```bash
 node scripts/biblioteca.mjs guardar projetos/<nome> --titulo "<o assunto do vídeo>" --estilo <estilo> --notas "<traço 1>; <traço 2>" [--referencia <ID da biblioteca>] [--pasta "<pasta que o aluno pediu>"]
 ```

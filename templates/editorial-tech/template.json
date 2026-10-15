@@ -1,0 +1,13 @@
+{
+  "titulo": "Template editorial-tech (vídeo falado)",
+  "categoria": "edicao",
+  "estilo": "editorial-tech",
+  "formato": "9:16",
+  "duracao": 34.1,
+  "aprender": [
+    "O agente escreve o roteiro de cenas e o template monta tudo com a sua marca",
+    "Rosto, cabeça sobre o painel, telas, calendário, botão com toque, chat, grade e oferta",
+    "Legenda sincronizada à fala e efeitos sonoros próprios"
+  ],
+  "exemplo": "Feito com o IMG_0395 (Black Vitalícia): projetos de exemplo em exemplo-cenas.json"
+}

@@ -3,7 +3,7 @@
 // Também tem comandos para o agente guardar, organizar e excluir. Nunca toca entrada/ nem a marca.
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
-import { readFile, writeFile, rename, realpath, stat } from 'node:fs/promises';
+import { readFile, writeFile, rename, realpath, stat, readdir } from 'node:fs/promises';
 import { resolve, dirname, join, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
@@ -62,15 +62,34 @@ export async function setLink(idOrName, url, folder = join(ROOT, 'biblioteca')) 
   return ids[0];
 }
 
-// Tudo que o feed mostra: turma, projetos guardados, lixeira e preferências do aluno.
-export async function biblioteca(root = ROOT) {
-  const [turma, meus, lixeira, preferencias] = await Promise.all([
-    catalog(join(root, 'biblioteca')), local.listarProjetos(root), local.listarLixeira(root), local.lerPreferencias(root)]);
-  return { turma: turma.itens, meus, lixeira, preferencias, estado: estadoDe(turma.itens, meus, lixeira, preferencias) };
+// Templates do kit (templates/<nome>/template.json): peças editáveis que o agente monta com a marca do aluno.
+export async function listarTemplates(root = ROOT) {
+  const base = join(root, 'templates');
+  let nomes = [];
+  try { nomes = (await readdir(base, { withFileTypes: true })).filter(d => d.isDirectory()).map(d => d.name); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const itens = [];
+  for (const nome of nomes.sort()) {
+    if (!local.ID_TEMPLATE.test(`template:${nome}`)) continue;
+    let info;
+    try { info = JSON.parse(await readFile(join(base, nome, 'template.json'), 'utf8')); } catch { continue; }
+    const tem = async arq => stat(join(base, nome, arq)).then(() => true, () => false);
+    itens.push({ id: `template:${nome}`, tipo: 'template', nome, caminho: `templates/${nome}`,
+      titulo: String(info.titulo || nome), categoria: info.categoria === 'motion' ? 'motion' : 'edicao', estilo: info.estilo || null,
+      aprender: Array.isArray(info.aprender) ? info.aprender.map(String).slice(0, 4) : [], formato: info.formato || null, duracao: Number(info.duracao) || null,
+      poster: (await tem('capa.jpg')) ? `/templates/${nome}/capa.jpg` : null, video: (await tem('previa.mp4')) ? `/templates/${nome}/previa.mp4` : null });
+  }
+  return itens;
 }
 
-function estadoDe(turma, meus, lixeira, preferencias) {
-  const assinatura = [preferencias.versao, turma.length, ...meus.map(m => `${m.nome}:${m.poster}:${m.titulo}`), ...lixeira.map(l => l.item)].join('|');
+// Tudo que o feed mostra: turma, templates, projetos guardados, lixeira e preferências do aluno.
+export async function biblioteca(root = ROOT) {
+  const [turma, templates, meus, lixeira, preferencias] = await Promise.all([
+    catalog(join(root, 'biblioteca')), listarTemplates(root), local.listarProjetos(root), local.listarLixeira(root), local.lerPreferencias(root)]);
+  return { turma: turma.itens, templates, meus, lixeira, preferencias, estado: estadoDe(turma.itens, meus, lixeira, preferencias, templates) };
+}
+
+function estadoDe(turma, meus, lixeira, preferencias, templates = []) {
+  const assinatura = [preferencias.versao, turma.length, templates.length, ...meus.map(m => `${m.nome}:${m.poster}:${m.titulo}`), ...lixeira.map(l => l.item)].join('|');
   return createHash('sha1').update(assinatura).digest('hex').slice(0, 16);
 }
 
@@ -209,11 +228,11 @@ export function createLibraryServer({ root = ROOT, fetchVideo = fetch, token = r
         if (!item?.video_url) { response.writeHead(404); response.end(); return; }
         await streamVideo(request, response, item.video_url, fetchVideo); return;
       }
-      const media = route.match(/^\/(meus|lixeira)\/([^/]+)\/(capa\.jpg|previa\.mp4)$/);
+      const media = route.match(/^\/(meus|lixeira|templates)\/([^/]+)\/(capa\.jpg|previa\.mp4)$/);
       if (media) {
         const [, area, nome, arquivo] = media;
         const { projetos, lixeira } = local.caminhos(root);
-        const base = area === 'meus' ? projetos : lixeira;
+        const base = area === 'meus' ? projetos : area === 'templates' ? join(root, 'templates') : lixeira;
         if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,140}$/.test(nome)) { response.writeHead(404); response.end(); return; }
         await serveLocalFile(request, response, base, join(base, nome, arquivo), arquivo.endsWith('.mp4') ? TYPES['.mp4'] : TYPES['.jpg']); return;
       }
@@ -282,7 +301,7 @@ async function main() {
   const [comando, ...resto] = process.argv.slice(2);
   const { posicionais: p, opcoes: o } = parseArgs(resto);
   const caminho = v => (v ? resolve(process.cwd(), v) : v);
-  const id = v => (local.ID_TURMA.test(v) || local.ID_PROJETO.test(v) ? v : local.NOME.test(v) ? `projeto:${v}` : v);
+  const id = v => (local.ID_TURMA.test(v) || local.ID_PROJETO.test(v) || local.ID_TEMPLATE.test(v) ? v : local.NOME.test(v) ? `projeto:${v}` : v);
   switch (comando) {
     case 'ajuda': case '--help': case '-h': console.log(AJUDA); return;
     case 'vincular':
@@ -294,6 +313,7 @@ async function main() {
       const ocultos = new Set(b.preferencias.ocultos);
       console.log('MEUS PROJETOS'); for (const m of b.meus) console.log(`  projeto:${m.nome}  ${m.titulo}${m.estilo ? ` · estilo ${m.estilo}` : ''}`);
       if (!b.meus.length) console.log('  (nenhum ainda)');
+      console.log('TEMPLATES'); for (const t of b.templates) console.log(`  ${t.id}  ${t.titulo} · ${t.caminho}`);
       console.log('DA TURMA'); for (const t of b.turma) console.log(`  ${t.id}  ${t.titulo}${t.estilo ? ` · estilo ${t.estilo}` : ''}${ocultos.has(t.id) ? ' (oculto)' : ''}`);
       console.log('PASTAS'); for (const f of b.preferencias.pastas) console.log(`  ${f.nome}: ${f.itens.length} item(ns)`);
       if (b.lixeira.length) { console.log('LIXEIRA'); for (const l of b.lixeira) console.log(`  ${l.nome}  ${l.titulo}`); }

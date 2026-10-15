@@ -12,7 +12,10 @@ Prefere baixar na mão? Botão verde **Code → Download ZIP** nesta página, ex
 ## Usar (sempre)
 1. Coloque o vídeo em `entrada/`.
 2. Peça: **"edita entrada/meu-video.mp4"** (ou "… no estilo editorial-tech").
-3. Pegue o resultado em `saida/`. Assista **com som** antes de postar.
+3. Se o vídeo tiver cenas gráficas (cards, telas, cabeça sobre o painel), o agente mostra antes uma **prancha com um quadro de cada cena**: aprove ou peça ajustes. Só depois ele renderiza.
+4. Pegue o resultado em `saida/`. Assista **com som** antes de postar.
+
+O vídeo pode estar em qualquer pasta: arraste o arquivo para a janela do agente e peça "edita esse vídeo". Ele nunca altera o original.
 
 Quer ajustar? Peça em português: *"troca a cor da legenda para amarelo"*, *"tira o card dos 12 segundos"*, *"deixa mais rápido"*.
 
@@ -20,6 +23,7 @@ Quer ajustar? Peça em português: *"troca a cor da legenda para amarelo"*, *"ti
 Peça ao agente "abre a biblioteca" (ou rode `node scripts/biblioteca.mjs`) e abra http://127.0.0.1:9127/. É um feed só, com as referências da turma e os seus projetos:
 - **Assistir**: clique na capa e o vídeo toca no próprio card.
 - **Usar como referência**: copia um pedido pronto (editar no estilo, copiar o estilo, fazer um motion parecido ou usar um projeto seu como base). Cole no Claude Code ou no Codex.
+- **Templates**: modelos de edição prontos do kit (ex.: `editorial-tech`). "Usar como referência" pede ao agente para editar o seu vídeo com ele, já com a sua marca.
 - **Meus projetos**: ao terminar cada edição, o agente guarda o projeto aqui, com capa e uma prévia leve.
 - **Pastas**: crie em "＋ Pasta" e organize qualquer card pelo menu ⋯.
 - **Remover**: referências da turma ficam ocultas só para você; seus projetos vão para a lixeira e podem ser restaurados.

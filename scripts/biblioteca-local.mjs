@@ -9,6 +9,7 @@ import { join, resolve, relative, sep, basename, dirname } from 'node:path';
 export const NOME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
 export const ID_TURMA = /^[a-f0-9]{20}$/;
 export const ID_PROJETO = /^projeto:([A-Za-z0-9][A-Za-z0-9._-]{0,99})$/;
+export const ID_TEMPLATE = /^template:([a-z0-9][a-z0-9-]{0,59})$/;
 const ITEM_LIXEIRA = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}__[0-9TZ-]{15,30}$/;
 const CATEGORIAS = ['edicao', 'motion'];
 
@@ -42,7 +43,7 @@ async function lerJson(arquivo) {
 // ---------- preferências: ocultos, avaliações e pastas ----------
 
 const padrao = () => ({ schema_version: 1, versao: 0, ocultos: [], avaliacoes: {}, pastas: [] });
-const idValido = v => typeof v === 'string' && (ID_TURMA.test(v) || ID_PROJETO.test(v));
+const idValido = v => typeof v === 'string' && (ID_TURMA.test(v) || ID_PROJETO.test(v) || ID_TEMPLATE.test(v));
 
 export function validarPreferencias(p) {
   if (!p || typeof p !== 'object' || Array.isArray(p)) throw erro('Preferências inválidas.');

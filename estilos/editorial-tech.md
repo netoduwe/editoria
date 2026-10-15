@@ -19,10 +19,10 @@ ritmo:
   pausa_maxima_mantida_s: 0.15  # medido (p90)
   max_planos_sem_pessoa: 2      # observado (no gancho chega a 3)
 layouts:                          # medido: soma dos planos classificados
-  - { nome: split,     pct: 31, funcao: "explicar mantendo o rosto", geometria: "visual y 220–800 · legenda y≈910 · painel y 1240, raio 140" }
+  - { nome: split,     pct: 31, funcao: "explicar mantendo o rosto", geometria: "visual y 470–(cabelo − 30) · painel calibrado: a linha passa no queixo (1240–1400), raio 140" }  # referência: visual y 220; adaptado à faixa segura do kit
   - { nome: rosto,     pct: 21, funcao: "ênfase, consequência, CTA", geometria: "câmera cheia · legenda y≈1350" }
   - { nome: grafico,   pct: 19, funcao: "mecanismo, alerta, diagrama, marca", geometria: "tela cheia · elemento central y 300–1260 · fala-título y≈1460" }
-  - { nome: evidencia, pct: 16, funcao: "provar com print/tabela", geometria: "print nítido [140,220,800,1120] sobre cópia ampliada e desfocada" }
+  - { nome: evidencia, pct: 16, funcao: "provar com print/tabela", geometria: "print nítido dentro de [110,470,820,960] sobre cópia ampliada e desfocada" }
   - { nome: card,      pct: 13, funcao: "apresentar item (ordinal + ícone + nome)", geometria: "ordinal y≈470 · card 520×520 raio ~22% · nome y≈1130" }
 legenda:
   fonte: { familia: "Inter", peso: 800, arquivo: "fontes/inter-800.woff2", original_parecida_com: "SF Pro Display Bold" }  # observado
@@ -80,14 +80,14 @@ Uma explicação que parece revista: espaço em branco, poucas cores, serifa it�
 - Dentro de um mesmo plano, novos elementos entram na palavra que os nomeia e os anteriores ficam (logos anteriores encolhem e viram histórico).
 
 ## Layouts
-**split** — fundo liso (claro na maior parte; escuro no gancho); visual principal na área `[100,220,880,580]`; legenda centrada em y≈910; painel da câmera `[0,1240,1080,680]`, raio superior 140, cabeça recortada passando por cima. Receita testada (`npx hyperframes remove-background corte.mp4 -o pessoa.webm`, ~15 s de processamento por segundo de vídeo na CPU):
+**split** — fundo liso (claro na maior parte; escuro no gancho); visual principal a partir de y 470 (faixa segura do kit) até ~30 px acima do cabelo; painel da câmera com raio superior 140 e a cabeça recortada passando por cima. **Pronto no template `templates/editorial-tech/`**: calibre no `cenas.json` (`split.painel_topo`, `split.deslocamento`, `split.visual_altura`) para a linha do painel passar no queixo — pessoa perto da câmera: painel 1400, deslocamento 580, visual 400; pessoa mais longe: 1240/690/500. Confira na prancha. Base para montar sem template (`npx hyperframes remove-background corte.mp4 -o pessoa.webm`, ~15 s de processamento por segundo de vídeo na CPU):
 ```css
 .painel{position:absolute;left:0;top:1240px;width:1080px;height:680px;border-radius:140px 140px 0 0;overflow:hidden}
 .painel video{position:absolute;left:0;top:-540px;width:1080px;height:1920px;object-fit:cover}  /* 1240 - 540 = 700 */
 .cabeca{position:absolute;left:0;top:0;width:1080px;height:1240px;overflow:hidden}
 .cabeca video{position:absolute;left:0;top:700px;width:1080px;height:1920px;object-fit:cover} /* mesmo 700 */
 ```
-`corte.mp4` no painel e `pessoa.webm` na cabeça, ambos `muted` e com o mesmo tempo; a voz vem de um `<audio>` separado. Ajuste o 700 para o topo do cabelo ficar em y≈990 (120–250 px acima do painel).
+`corte.mp4` no painel e `pessoa.webm` na cabeça, ambos `muted` e com o mesmo tempo; a voz vem de um `<audio>` separado. Ajuste o 700 para a linha do painel cair no queixo (se cair nos olhos ou na boca, desça o painel ou suba a câmera). A camada da cabeça precisa ficar acima do friso do painel (`z-index`), senão a linha aparece por cima do rosto.
 
 **rosto** — câmera cheia, push lento 1,10→1,15 por plano; legenda branca com sombra curta em y≈1350.
 
@@ -123,4 +123,5 @@ Pills de karaokê, legenda com contorno grosso, transição chamativa (whip, gli
 Fundos e destaques seguem `marca/design.md` (os hex da referência indicam o **papel**). Gravação noturna/escura → split em fundo escuro da marca em vez de branco (registrar). Sem prints reais → trocar `evidencia` por `grafico` com o dado falado.
 
 ## Validação
+- 2026-10-15: edição real com o template (IMG_0395, 34 s, 14 planos, plano médio 2,4 s, legenda 1–2 palavras, cabeça sobre o painel calibrada em 1400/580). Ritmo dentro dos alvos; split com visual a partir de y 470.
 - 2026-10-14: análise medida da referência (os números deste arquivo). Um teste feito com a versão anterior desta receita ficou em **6/18** na comparação: ritmo mais lento (plano médio 4,7 s × 2,1 s; 13 × 37 animações/min) e respiros maiores (pausa p90 0,35 s × 0,15 s). Esta versão fixa os alvos de ritmo; ainda **não validada** com um teste novo — rode a etapa "Provar" da skill `copiar-estilo` no seu primeiro vídeo.
