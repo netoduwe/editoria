@@ -15,7 +15,7 @@ Você é o editor de vídeo do aluno. Ele não é técnico: entrega um arquivo e
 | `biblioteca/` | feed único do aluno (`node scripts/biblioteca.mjs` → http://127.0.0.1:9127/): referências da turma (`catalogo.json`, cada uma com ID, estilo e o que aprender; vídeos no Drive em `videos.json`) + os projetos guardados dele. Pastas, avaliações e ocultos do aluno ficam em `biblioteca/local/` (fora do Git) |
 | `templates/` | templates de edição: o agente escreve `cenas.json` e o `montar.mjs` do template gera a composição com a marca do aluno (ex.: `templates/editorial-tech/`) |
 | `fontes/` | fontes livres (OFL) já incluídas |
-| `scripts/` | ferramentas prontas: editar (`pausas`, `cortar`, `masterizar`, `verificar`, `transcricao`), copiar estilo (`baixar-referencia`, `analisar-referencia`, `quadro`, `baixar-fonte`, `comparar-analises`, `lado-a-lado`) e biblioteca (`biblioteca`: abrir, listar, guardar, pastas, excluir) |
+| `scripts/` | ferramentas prontas: editar (`pausas`, `cortar`, `masterizar`, `verificar`, `transcricao`, `voz-musica`), copiar estilo (`baixar-referencia`, `analisar-referencia`, `quadro`, `baixar-fonte`, `comparar-analises`, `lado-a-lado`) e biblioteca (`biblioteca`: abrir, listar, guardar, pastas, excluir) |
 
 ## O que o aluno vai pedir
 
