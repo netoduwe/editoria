@@ -28,7 +28,7 @@
 - Onde aparece: só no encerramento, salvo pedido.
 
 ## Preferências de edição
-- estilo_padrao: {{ESTILO}}   <!-- legenda-viral | editorial-tech | aula-split | minimalista -->
+- estilo_padrao: {{ESTILO}}   <!-- legenda-viral | editorial-tech | aula-split | minimalista | doc-tech -->
 - Música: {{MUSICA}}   <!-- não / trilha discreta -->
 - Efeitos sonoros: {{SFX}}   <!-- poucos / nenhum -->
 - Nunca fazer: {{NUNCA}}   <!-- ex.: emojis, palavrão na legenda, cor vermelha -->
