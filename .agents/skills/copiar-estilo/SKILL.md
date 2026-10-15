@@ -1,6 +1,6 @@
 ---
 name: copiar-estilo
-description: Aprende o estilo de edição de um vídeo de referência (link do YouTube, Shorts, Instagram, TikTok ou arquivo) e o transforma numa receita reutilizável em estilos/<nome>.md — baixa, mede ritmo/cor/áudio, olha quadro a quadro, extrai tipografia, layouts, motion e gancho, e prova a cópia reproduzindo num vídeo do aluno e comparando. Use quando o aluno disser "copia esse estilo", "quero editar igual a esse vídeo", "faz no estilo desse criador" ou mandar um link de referência.
+description: Aprende o estilo de edição de um vídeo de referência (link do YouTube, Shorts, Instagram, TikTok ou arquivo) e o transforma numa receita reutilizável em estilos/<nome>.md — baixa, mede ritmo/cor/áudio, olha quadro a quadro, extrai tipografia, layouts, motion e gancho, e prova a cópia reproduzindo num vídeo do aluno e comparando. Use quando o aluno disser "copia esse estilo", "quero editar igual a esse vídeo", "faz no estilo desse criador", mandar um link de referência ou colar um pedido "copia o estilo da referência … da biblioteca".
 ---
 
 # Copiar estilo de edição (referência → receita → prova)
@@ -15,6 +15,7 @@ Trabalhe em `referencias/estilos/<nome>/` (bastidores, fora do Git) e entregue `
 - Foco, se o aluno quiser só uma parte: legenda, ritmo/cortes, motion/gráficos, cor, áudio. Padrão: tudo.
 
 ## 2. Baixar
+Referência da biblioteca (pedido com ID): se o item já tem `estilo`, a receita existe — pule para a skill `editar-video` com ela. Senão, pegue o link com `node scripts/biblioteca.mjs listar --json` (`video_url` = Drive, funciona no script abaixo; `link_original` = post do criador).
 ```bash
 node scripts/baixar-referencia.mjs "<link>" <nome>          # um por vídeo; nomes <nome>, <nome>-2, <nome>-3
 ```
@@ -32,12 +33,13 @@ Leia [references/olhar-de-editor.md](references/olhar-de-editor.md) e siga o che
 2. `planos_*.jpg` — classifique **cada plano** (tabela `planos` do analise.json) num layout: rosto, split, card, print/evidência, gráfico, b-roll, texto cheio… Calcule % do tempo por layout e o padrão de alternância (ex.: "2 gráficos e volta ao rosto").
 3. `cortes_*.jpg` — tipo de cada transição (seco, punch-in, whip, flash, fade, slide, máscara) e o que entra animado logo depois.
 4. `legendas_*.jpg` + palavras listadas no analise.md — palavras por vez, sincronia, caixa, destaque, entrada/saída.
-5. **De perto** com `quadro.mjs`, em 3–6 instantes representativos (legenda no rosto, legenda no split/gráfico, título, card, final):
+5. **Movimento:** descreva as entradas típicas com o [vocabulário de movimento](../motion-design/references/vocabulario.md) (curva, cascata, máscara, impacto, fio condutor) — vira o bloco `movimento` da receita.
+6. **De perto** com `quadro.mjs`, em 3–6 instantes representativos (legenda no rosto, legenda no split/gráfico, título, card, final):
    ```bash
    node scripts/quadro.mjs <video> <t> --grade --cor "x,y;x,y" --recorte x,y,l,a --seq 0.5
    ```
    `--grade` → posição e tamanho (converta com as fórmulas do checklist) · `--cor` → hex do texto, destaque, fundo · `--recorte` → identificar a fonte, contorno, sombra · `--seq` → contar quadros de uma entrada (duração e ease).
-6. Transcrição (`analise/transcript.json`) — fórmula do gancho (pergunta, proibição, número, promessa), frases curtas ou longas, CTA.
+7. Transcrição (`analise/transcript.json`) — fórmula do gancho (pergunta, proibição, número, promessa), frases curtas ou longas, CTA.
 
 Registre cada achado em `referencias/estilos/<nome>/evidencias.md`: `[observado] legenda Inter-like 800, caixa normal, y≈1350 no rosto — quadro_8s20_grade.png`.
 
@@ -58,16 +60,16 @@ Copie [references/modelo-estilo.md](references/modelo-estilo.md) para `estilos/<
 
 ## 7. Provar (obrigatório antes de dizer "pronto")
 1. Peça um vídeo curto do aluno (10–30 s falando) em `entrada/`. Sem vídeo, entregue a receita marcada como **não validada**.
-2. Edite com a skill `editar-video` no estilo novo, em `projetos/<nome>-teste/`.
+2. Edite com a skill `editar-video` no estilo novo, em `projetos/<nome>-teste/`, incluindo a revisão (skill `revisar-video`).
 3. Meça o teste e compare:
    ```bash
    node scripts/analisar-referencia.mjs projetos/<nome>-teste/render.mp4
    node scripts/comparar-analises.mjs referencias/estilos/<nome>/analise/analise.json projetos/<nome>-teste/analise/analise.json
    node scripts/lado-a-lado.mjs referencias/estilos/<nome>/video.mp4 projetos/<nome>-teste/render.mp4 "<tRef:tTeste,...>" projetos/<nome>-teste/lado-a-lado.jpg
    ```
-   Escolha pares equivalentes: gancho, legenda no rosto, cada layout, um card/gráfico, o final.
+   Escolha pares equivalentes: gancho, legenda no rosto, cada layout, um card/gráfico, o final. Em motion que recria a referência no mesmo tempo, compare direto na composição: `npx hyperframes snapshot --at <tempos> --against referencias/estilos/<nome>/video.mp4 --describe false`.
 4. Para cada ✗ e cada diferença visível: **erro de reprodução** → corrija a receita e/ou a composição; **adaptação intencional** (marca do aluno, material diferente, ex.: gravação noturna, sem prints) → registre em "Adaptações". Repita até 3 rodadas.
 5. Critério de pronto: ritmo (plano médio, cortes/min, gancho, animações/min) dentro da tolerância; anatomia da legenda igual no lado a lado; todos os layouts principais presentes; cores nos papéis certos. Registre a tabela final na seção "Validação" da receita.
 
 ## 8. Entregar
-Diga ao aluno, curto: o DNA do estilo em 5 linhas, o vídeo de teste (`projetos/<nome>-teste/` → copie o MP4 final para `saida/`), o placar da comparação, o que foi adaptado e por quê, e como usar: **"edita entrada/x.mp4 no estilo <nome>"**.
+Diga ao aluno, curto: o DNA do estilo em 5 linhas, o vídeo de teste (`projetos/<nome>-teste/` → copie o MP4 final para `saida/`), o placar da comparação, o que foi adaptado e por quê, e como usar: **"edita entrada/x.mp4 no estilo <nome>"**. Guarde o teste na biblioteca: `node scripts/biblioteca.mjs guardar projetos/<nome>-teste --estilo <nome> --titulo "Teste do estilo <nome>" [--referencia <ID>]`.

@@ -16,6 +16,16 @@ Prefere baixar na mão? Botão verde **Code → Download ZIP** nesta página, ex
 
 Quer ajustar? Peça em português: *"troca a cor da legenda para amarelo"*, *"tira o card dos 12 segundos"*, *"deixa mais rápido"*.
 
+## Biblioteca
+Peça ao agente "abre a biblioteca" (ou rode `node scripts/biblioteca.mjs`) e abra http://127.0.0.1:9127/. É um feed só, com as referências da turma e os seus projetos:
+- **Assistir**: clique na capa e o vídeo toca no próprio card.
+- **Usar como referência**: copia um pedido pronto (editar no estilo, copiar o estilo, fazer um motion parecido ou usar um projeto seu como base). Cole no Claude Code ou no Codex.
+- **Meus projetos**: ao terminar cada edição, o agente guarda o projeto aqui, com capa e uma prévia leve.
+- **Pastas**: crie em "＋ Pasta" e organize qualquer card pelo menu ⋯.
+- **Remover**: referências da turma ficam ocultas só para você; seus projetos vão para a lixeira e podem ser restaurados.
+
+Também dá para pedir ao agente: *"guarda esse projeto na pasta Anúncios"*, *"apaga o projeto teste"*, *"libera espaço dos projetos antigos"*. Veja [como a biblioteca funciona](biblioteca/README.md).
+
 ## Estilos prontos
 | Estilo | Para quê |
 |---|---|
@@ -37,7 +47,7 @@ Ele copia a **linguagem** da edição, não a identidade: as cores e a logo cont
 Peça: *"faz um motion de 10 s anunciando X"*. Antes, coloque prints e vídeos que você gosta em `referencias/`. O agente mostra um **storyboard** primeiro; só depois de você aprovar ele anima e renderiza.
 
 ## Pastas
-`entrada/` seus brutos (nunca alterados) · `saida/` vídeos prontos · `projetos/` bastidores de cada edição · `marca/` sua identidade · `estilos/` receitas · `referencias/` inspirações e vídeos de referência · `fontes/` fontes livres · `scripts/` ferramentas.
+`entrada/` seus brutos (nunca alterados) · `saida/` vídeos prontos · `projetos/` bastidores de cada edição (os guardados aparecem na biblioteca) · `biblioteca/` o feed · `marca/` sua identidade · `estilos/` receitas · `referencias/` inspirações e vídeos de referência · `fontes/` fontes livres · `scripts/` ferramentas.
 
 Seus vídeos, projetos, referências e logo ficam fora do Git (veja `.gitignore`): nada disso sobe se você usar o kit num repositório.
 

@@ -1,0 +1,318 @@
+{
+  "schema_version": 2,
+  "atualizado_em": "2026-10-15",
+  "itens": [
+    {
+      "id": "54792d89df860aeacb7b",
+      "titulo": "Editorial com a cabeça saindo do painel",
+      "categoria": "edicao",
+      "estilo": "editorial-tech",
+      "aprender": [
+        "Cabeça recortada passando por cima do painel da câmera",
+        "O layout muda conforme a função de cada frase",
+        "Legenda de 1–2 palavras e títulos em serifa itálica"
+      ],
+      "formato": "9:16",
+      "duracao": 42.6,
+      "poster": "posters/54792d89df860aeacb7b.jpg"
+    },
+    {
+      "id": "77bfb9d7ff383bc1e109",
+      "titulo": "Motion tipográfico: da apresentação à oferta",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Uma ideia por tela, em tipografia grande",
+        "A lista se monta com ícones na hora em que é dita",
+        "Calendário, selo e infinito como metáforas da oferta"
+      ],
+      "formato": "9:16",
+      "duracao": 32,
+      "poster": "posters/77bfb9d7ff383bc1e109.jpg"
+    },
+    {
+      "id": "300680ce68a95afd60e5",
+      "titulo": "Anúncio com cena de cinema no gancho e interface neon",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Gancho com cena de banco de imagens e frase curta",
+        "Interface viva: busca digitando e lista se organizando",
+        "Contorno neon e preço com botão no fim"
+      ],
+      "formato": "9:16",
+      "duracao": 30.5,
+      "poster": "posters/300680ce68a95afd60e5.jpg"
+    },
+    {
+      "id": "e53657ccaf96d07fe89b",
+      "titulo": "Diagramas em fundo creme em cima, fala embaixo",
+      "categoria": "edicao",
+      "estilo": "aula-split",
+      "aprender": [
+        "Tela dividida: diagrama em cima, pessoa embaixo",
+        "Ícones de traço fino montam o raciocínio",
+        "Gancho com frase forte em caixa-alta"
+      ],
+      "formato": "9:16",
+      "duracao": 110.9,
+      "poster": "posters/e53657ccaf96d07fe89b.jpg"
+    },
+    {
+      "id": "6ffdeb9eb5584117e216",
+      "titulo": "Tutorial passo a passo com telas e logos",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Ilustração no gancho para prender a atenção",
+        "Passos numerados com logos e telas reais",
+        "Fundo creme e as cores das marcas citadas"
+      ],
+      "formato": "9:16",
+      "duracao": 45.4,
+      "poster": "posters/6ffdeb9eb5584117e216.jpg"
+    },
+    {
+      "id": "13d6502e46d5441be4a7",
+      "titulo": "Motion 3D da oferta com fita metálica",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Fita metálica azul conduz as transições",
+        "Objetos 3D com profundidade: placa, infinito, calendário",
+        "Fechamento com data e botão"
+      ],
+      "formato": "9:16",
+      "duracao": 32,
+      "poster": "posters/13d6502e46d5441be4a7.jpg"
+    },
+    {
+      "id": "d460712370df13b5f045",
+      "titulo": "Fala com legenda karaokê e corte em P&B",
+      "categoria": "edicao",
+      "estilo": "legenda-viral",
+      "aprender": [
+        "Palavra falada destacada em pílula azul",
+        "Corte rápido para preto e branco na ênfase",
+        "Selo de título no topo"
+      ],
+      "formato": "9:16",
+      "duracao": 89.2,
+      "poster": "posters/d460712370df13b5f045.jpg"
+    },
+    {
+      "id": "b0c0ed2a0dd3f2b47fb3",
+      "titulo": "Dicas longas com legenda discreta e ícones",
+      "categoria": "edicao",
+      "estilo": null,
+      "aprender": [
+        "Legenda pequena que não compete com o rosto",
+        "Ícones simples quando aparece uma lista",
+        "Fala contínua, cortes só onde precisa"
+      ],
+      "formato": "9:16",
+      "duracao": 91,
+      "poster": "posters/b0c0ed2a0dd3f2b47fb3.jpg"
+    },
+    {
+      "id": "22ff1541edde696b349a",
+      "titulo": "Documental em preto e branco com imagens de arquivo",
+      "categoria": "edicao",
+      "estilo": null,
+      "aprender": [
+        "Imagens de arquivo contam a história junto com a fala",
+        "Cards brancos minimalistas para o preço",
+        "A trilha conduz o ritmo"
+      ],
+      "formato": "9:16",
+      "duracao": 62.3,
+      "poster": "posters/22ff1541edde696b349a.jpg"
+    },
+    {
+      "id": "ea6678abe5c1a5a2313a",
+      "titulo": "Tour do produto com prints e frases curtas",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Notebook nas nuvens abre o vídeo",
+        "Prints reais do produto em sequência",
+        "Frases curtas com uma palavra em destaque"
+      ],
+      "formato": "9:16",
+      "duracao": 24,
+      "poster": "posters/ea6678abe5c1a5a2313a.jpg"
+    },
+    {
+      "id": "004e9ab8f591f34bf599",
+      "titulo": "Fala com motion 3D na metade de cima",
+      "categoria": "edicao",
+      "estilo": null,
+      "aprender": [
+        "Tela dividida: motion 3D em cima, fala embaixo",
+        "Cada frase vira um objeto (1 vez, infinito, calendário)",
+        "CTA final em card com data"
+      ],
+      "formato": "9:16",
+      "duracao": 32,
+      "poster": "posters/004e9ab8f591f34bf599.jpg"
+    },
+    {
+      "id": "fdc24e23877824896320",
+      "titulo": "Teaser com celular e capas flutuando",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Celular e capas em 3D flutuando no espaço",
+        "Número grande (+30) como prova",
+        "Título com brilho e CTA de comentário"
+      ],
+      "formato": "9:16",
+      "duracao": 20.5,
+      "poster": "posters/fdc24e23877824896320.jpg"
+    },
+    {
+      "id": "d8b4d8c06e02e1b92667",
+      "titulo": "Editorial com cards claros entre as falas",
+      "categoria": "edicao",
+      "estilo": "editorial-tech",
+      "aprender": [
+        "Cards brancos com números e datas grandes",
+        "Pergunta em serifa itálica como gancho",
+        "A pessoa volta entre um card e outro"
+      ],
+      "formato": "9:16",
+      "duracao": 48.3,
+      "poster": "posters/d8b4d8c06e02e1b92667.jpg"
+    },
+    {
+      "id": "4a628bfeb587e61b155c",
+      "titulo": "Fala com tarjas para segurar a atenção",
+      "categoria": "edicao",
+      "estilo": "legenda-viral",
+      "aprender": [
+        "Tarjas na cor de destaque com a palavra-chave",
+        "Legenda branca curta no centro",
+        "CTA “link aqui embaixo” em tarja"
+      ],
+      "formato": "9:16",
+      "duracao": 22.5,
+      "poster": "posters/4a628bfeb587e61b155c.jpg"
+    },
+    {
+      "id": "391dd0d320aa22bb3c62",
+      "titulo": "Fala ao ar livre com cards de destaque",
+      "categoria": "edicao",
+      "estilo": "legenda-viral",
+      "aprender": [
+        "Legenda curta no centro do quadro",
+        "Card amarelo e preto na informação principal",
+        "Sem troca de layout: o card faz o trabalho"
+      ],
+      "formato": "9:16",
+      "duracao": 17.7,
+      "poster": "posters/391dd0d320aa22bb3c62.jpg"
+    },
+    {
+      "id": "b197771c84ee84b8fef7",
+      "titulo": "Fala na praia com cards de texto minimalistas",
+      "categoria": "edicao",
+      "estilo": null,
+      "aprender": [
+        "Cards de texto finos sobre fundo escuro",
+        "Ideia em cima, pessoa embaixo",
+        "Fechamento só com tipografia"
+      ],
+      "formato": "9:16",
+      "duracao": 20,
+      "poster": "posters/b197771c84ee84b8fef7.jpg"
+    },
+    {
+      "id": "f38d7d0b1a60abf98fbc",
+      "titulo": "Fala com lettering plano na metade de cima",
+      "categoria": "edicao",
+      "estilo": null,
+      "aprender": [
+        "Lettering plano no lugar do 3D",
+        "Palavra-chave em itálico na cor de destaque",
+        "Mesmo roteiro do motion 3D, outro tratamento"
+      ],
+      "formato": "9:16",
+      "duracao": 29,
+      "poster": "posters/f38d7d0b1a60abf98fbc.jpg"
+    },
+    {
+      "id": "22221e3290ebba073646",
+      "titulo": "Fechamento de 9 s com lista de benefícios",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "O símbolo se forma e vira título",
+        "A lista entra item a item",
+        "Botão de CTA por último"
+      ],
+      "formato": "9:16",
+      "duracao": 9,
+      "poster": "posters/22221e3290ebba073646.jpg"
+    },
+    {
+      "id": "525a3a7c1018bbc8d89e",
+      "titulo": "CTA de 7 s com data",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "O símbolo se desenha e vira o título",
+        "Data em destaque",
+        "Botão entra por último"
+      ],
+      "formato": "9:16",
+      "duracao": 7,
+      "poster": "posters/525a3a7c1018bbc8d89e.jpg"
+    },
+    {
+      "id": "f42c73936e824ecda1d8",
+      "titulo": "Tour do produto em 16:9",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Versão horizontal para YouTube ou página de vendas",
+        "Prints e interface em sequência com efeitos sonoros",
+        "Mesmo sistema visual da versão vertical"
+      ],
+      "formato": "16:9",
+      "duracao": 56.5,
+      "poster": "posters/f42c73936e824ecda1d8.jpg"
+    },
+    {
+      "id": "80ba2d081c759273aa0d",
+      "titulo": "Editorial original: cabeça sobre o painel",
+      "categoria": "edicao",
+      "estilo": "editorial-tech",
+      "aprender": [
+        "Layout escolhido pela função de cada frase",
+        "Serifa itálica nas cenas gráficas",
+        "Corte seco, quase sem pausa"
+      ],
+      "formato": "9:16",
+      "duracao": 46.5,
+      "poster": "posters/80ba2d081c759273aa0d.jpg",
+      "autor": "@nick_saraev",
+      "link_original": "https://www.instagram.com/reel/DeKFBr0vRpv/"
+    },
+    {
+      "id": "2294ec2377f48d8d033f",
+      "titulo": "Corte de aula: artigo em cima, rosto embaixo",
+      "categoria": "edicao",
+      "estilo": "aula-split",
+      "aprender": [
+        "Artigo ou slide em cima, pessoa embaixo",
+        "Legenda com pílula azul na palavra-chave",
+        "Preto e branco nas ênfases"
+      ],
+      "formato": "9:16",
+      "duracao": 89.8,
+      "poster": "posters/2294ec2377f48d8d033f.jpg",
+      "autor": "@neyfelipef",
+      "link_original": "https://www.instagram.com/p/DRfEPmiCkUE/"
+    }
+  ]
+}

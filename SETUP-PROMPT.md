@@ -58,6 +58,7 @@ Me mostre:
   "edita entrada/aula.mp4 no estilo aula-split"
   "copia o estilo deste vídeo: <link do Reels/YouTube/TikTok>" (explique que dá para mandar 2–3 vídeos do mesmo criador e que o estilo novo fica salvo em estilos/ para usar sempre)
   "faz um motion de 10 segundos anunciando meu curso" (explique que motion começa por storyboard e que posso jogar referências em referencias/).
+- a biblioteca: rode node scripts/biblioteca.mjs em segundo plano, me dê o endereço http://127.0.0.1:9127/ e explique em 3 linhas: Assistir toca no card; Usar como referência copia um pedido pronto; cada vídeo que você editar para mim fica guardado em Meus projetos, e posso criar pastas.
 ```
 
 ## Se der problema

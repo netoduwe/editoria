@@ -1,6 +1,6 @@
 ---
 name: editar-video
-description: Edita um vídeo falado do aluno (Reels, Shorts, TikTok, aula, anúncio) do bruto ao MP4 final — transcreve, escolhe as melhores tomadas, corta, monta no HyperFrames num estilo da pasta estilos/, legenda, masteriza e entrega em saida/. Use quando o aluno pedir "edita", "corta", "legenda", "deixa bonito" ou entregar um vídeo em entrada/.
+description: Edita um vídeo falado do aluno (Reels, Shorts, TikTok, aula, anúncio) do bruto ao MP4 final — transcreve, escolhe as melhores tomadas, corta, monta no HyperFrames num estilo da pasta estilos/, legenda, masteriza e entrega em saida/. Use quando o aluno pedir "edita", "corta", "legenda", "deixa bonito", entregar um vídeo em entrada/ ou colar um pedido da biblioteca ("edita no estilo…", "usa o meu projeto … como base").
 ---
 
 # Editar vídeo (bruto → MP4 pronto)
@@ -12,6 +12,10 @@ Siga as etapas em ordem. Trabalhe em `projetos/<nome>/` (nome curto, sem espaço
 node scripts/verificar.mjs entrada/<arquivo> --rapido
 ```
 Anote orientação real (iPhone grava girado: confie em `resolucao_exibida`), fps, duração. Leia `marca/design.md` e a receita `estilos/<estilo>.md`. Se a receita começa com bloco YAML, **ele é a especificação**: tamanhos, posições, fontes, tempos de animação, cores por papel e os alvos de ritmo (`plano_medio_s`, `cortes_por_minuto`, `animacoes_por_minuto`, `pausa_maxima_mantida_s`). Cores com `usar: marca.<papel>` vêm de `marca/design.md`.
+
+Se o pedido veio da biblioteca, ele cita um ID ou `projetos/<nome>`:
+- **Referência com estilo** ("edita … no estilo X") → use `estilos/X.md`; não precisa baixar a referência.
+- **Projeto como base** ("usa o meu projeto … como base") → crie um projeto novo e copie para ele a `composicao/` do projeto base (sem os vídeos de `assets/`) e o `design.md`. O corte e as legendas são refeitos com o vídeo novo; layout, cores, tipografia e movimento ficam iguais. Nunca altere o projeto base. Se ele estiver compactado, nada se perde: os arquivos pesados são do vídeo antigo.
 
 ## 2. Transcrever e ler como roteiro
 ```bash
@@ -45,24 +49,26 @@ npx hyperframes init projetos/<nome>/composicao --non-interactive --example=blan
 ```
 - Copie para `composicao/assets/`: `corte.mp4`, as fontes de `fontes/` que o estilo usa, a logo de `marca/logo/`. Copie `marca/design.md` para `composicao/design.md` (o HyperFrames trata como verdade da marca).
 - Carregue a skill `hyperframes` e siga `general-video` em modo automação, sem storyboard. Monte exatamente o que a receita do estilo descreve.
-- Áudio: o vídeo `corte.mp4` leva a voz (`data-has-audio="true"`). SFX só nos momentos que o estilo pede; procure-os com a skill `media-use`. Sem música, a menos que o aluno peça ou a marca defina.
+- Áudio: o vídeo `corte.mp4` leva a voz (`data-has-audio="true"`). SFX só nos momentos que o estilo pede, cada um preso a um evento da tela (entrada de card, troca de layout) com o pico no quadro do evento; procure-os com a skill `media-use`. Sem música, a menos que o aluno peça ou a marca defina.
 - Legendas: fragmentos de 1–4 palavras, quebrando em pontuação/pausa; artigo e preposição grudam na palavra seguinte; nunca um fragmento só com "a", "de", "que".
 - Recorte de pessoa (estilos com cabeça sobre painel): `npx hyperframes remove-background composicao/assets/corte.mp4 -o composicao/assets/pessoa.webm`.
 
 ## 6. Revisar antes de renderizar
-```bash
-cd projetos/<nome>/composicao && npx hyperframes check
-npx hyperframes snapshot --at <meio de cada cena, separados por vírgula>
-```
-Se o estilo tem alvos de ritmo, confira no corte/composição: duração média dos planos e frequência de entradas animadas devem ficar perto do alvo (±25%); se ficar longe, adicione trocas de layout ou entradas nas palavras-chave. `check` sem erros (avisos de organização tudo bem). O `snapshot` imprime onde salvou as imagens e uma `contact-sheet.jpg`: **abra e olhe**: texto cortado, legenda em cima do rosto, cor ilegível, elemento sobrando, cena vazia, primeiro e último quadro. Corrija e repita.
+Siga os passos 1–3 da skill `revisar-video`: `npx hyperframes check --at-transitions` sem erros, `npx hyperframes snapshot --at <meio de cada cena e em volta de cada troca> --describe false` (**abra e olhe** a `contact-sheet.jpg`: texto cortado, legenda em cima do rosto, cor ilegível, elemento sobrando, cena vazia, primeiro e último quadro) e os tempos de leitura. Se o estilo tem alvos de ritmo, a duração média dos planos e a frequência de entradas animadas devem ficar a ±25% do alvo; se ficar longe, adicione trocas de layout ou entradas nas palavras-chave. Corrija e repita.
 
 ## 7. Renderizar e entregar
 ```bash
 npx hyperframes render --quality delivery --fps 30 -o ../render.mp4
 cd ../../.. && node scripts/masterizar.mjs projetos/<nome>/render.mp4 saida/<nome>.mp4
-node scripts/verificar.mjs saida/<nome>.mp4
+node scripts/verificar.mjs saida/<nome>.mp4 --guias
 npx hyperframes transcribe projetos/<nome>/corte-transcricao/transcript.json --to srt -o saida/<nome>.srt
 ```
-`verificar` precisa mostrar `decodificacao: ok` e loudness perto de −14 LUFS. Abra a folha de quadros gerada e confira começo e fim.
+`verificar` precisa mostrar `decodificacao: ok` e `alertas` vazio. Abra a folha com guias (`saida/<nome>.guias.jpg`): tudo legível em tamanho de celular e dentro da faixa vermelha (passos 4–5 da skill `revisar-video`).
 
-Responda ao aluno com: caminho do vídeo, duração, estilo, o que você cortou/decidiu, e como pedir ajustes ("muda a cor da legenda", "tira o card do minuto 0:12"). Avise que ele deve assistir com som antes de publicar.
+## 8. Guardar na biblioteca
+```bash
+node scripts/biblioteca.mjs guardar projetos/<nome> --titulo "<o assunto do vídeo>" --estilo <estilo> --notas "<traço 1>; <traço 2>" [--referencia <ID da biblioteca>] [--pasta "<pasta que o aluno pediu>"]
+```
+Gera capa e prévia leve (540 px) e o projeto aparece em **Meus projetos** no feed (`node scripts/biblioteca.mjs`). Rode de novo a cada nova versão aprovada. Se o aluno pedir para liberar espaço: `node scripts/biblioteca.mjs compactar projetos/<nome>` (apaga só corte, recorte da pessoa e render, que dá para refazer; o vídeo final em `saida/` e a prévia ficam).
+
+Responda ao aluno com: caminho do vídeo, duração, estilo, o que você cortou/decidiu, que ele já está na biblioteca, e como pedir ajustes ("muda a cor da legenda", "tira o card do minuto 0:12"). Avise que ele deve assistir com som antes de publicar.
