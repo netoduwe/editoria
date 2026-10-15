@@ -4,6 +4,8 @@ saida/*
 projetos/*
 referencias/*
 marca/logo/*
+# pastas, avaliações e ocultos de cada aluno
+biblioteca/local/
 !*/.gitkeep
 !marca/logo/.gitkeep
 node_modules/
