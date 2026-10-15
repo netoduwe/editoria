@@ -8,8 +8,9 @@
 // projetos/<nome>/composicao/index.html com a marca de marca/design.md: legendas sincronizadas às palavras,
 // cabeça sobre o painel, telas com títulos, calendário, botão, chat, grade, oferta e encerramento com logo.
 // Efeitos sonoros são sintetizados aqui (sem arquivos de terceiros). Nada é escrito fora do projeto.
-import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
+import { homedir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -82,7 +83,7 @@ function emBruto(ref, cena, padrao) {
   if (typeof ref === 'number') return ref;
   if (!ref) return padrao ?? cena.inicio + 0.1;
   const alvo = norm(ref.split(/\s+/)[0]);
-  const w = palavras.find(p => p.t >= cena.inicio - 0.05 && p.t < cena.fim && norm(p.txt).startsWith(alvo));
+  const w = palavras.find(p => p.t >= cena.inicio - 0.25 && p.t < cena.fim && norm(p.txt).startsWith(alvo));
   if (!w) { console.warn(`⚠ palavra "${ref}" não encontrada na cena ${cena.inicio}–${cena.fim}; usei o início.`); return cena.inicio + 0.1; }
   return w.t;
 }
@@ -109,10 +110,60 @@ const n3 = x => Number(x).toFixed(3);
 const html = [], tl = [], audios = [], css = [];
 let uid = 0, faixaSfx = 0;
 const id = p => `${p}${++uid}`;
-const som = (nome, t, vol = 0.3) => { if (!nome || t >= DT) return; audios.push(`<audio id="${id('sfx')}" src="assets/sfx/${nome}.wav" data-start="${n3(t)}" data-duration="${n3(Math.min(sfxDur[nome], DT - t))}" data-track-index="${4 + (faixaSfx++ % 4)}" data-volume="${vol}"></audio>`); };
+// Com trilha, a música já marca as trocas: sai o efeito de passagem e os outros ficam mais baixos.
+const som = (nome, t, vol = 0.3) => { if (!nome || t >= DT || (musica && nome === 'passagem')) return; if (musica) vol = Number((vol * 0.7).toFixed(2)); audios.push(`<audio id="${id('sfx')}" src="assets/sfx/${nome}.wav" data-start="${n3(t)}" data-duration="${n3(Math.min(sfxDur[nome], DT - t))}" data-track-index="${4 + (faixaSfx++ % 4)}" data-volume="${vol}"></audio>`); };
 const cenas = C.cenas.map(c => ({ ...c }));
 const DT = Number((Math.max(D, ...cenas.map(c => c.fim))).toFixed(3));
-const mostra = (sel, a, b) => { tl.push(`tl.set("${sel}",{opacity:1},${n3(a)});`); if (b < DT - 0.001) tl.push(`tl.set("${sel}",{opacity:0},${n3(b)});`); };
+
+// ---------- trilha (opcional): batidas para encaixar o movimento ----------
+// "musica": { "arquivo": "...mp3", "inicio": null, "volume": 0.7, "carve": 0.8 }
+// inicio = segundos na música em que o vídeo começa; sem ele, o template escolhe, perto do começo da música,
+// o ponto que faz mais trocas de cena caírem na batida (as trocas não mudam: elas escondem as emendas do corte).
+let musica = null;
+if (C.musica) {
+  const origem = resolve(projeto, C.musica.arquivo || '');
+  if (!existsSync(origem)) throw new Error(`Trilha não encontrada: ${C.musica.arquivo}`);
+  const nomeTrilha = 'music-bed' + origem.slice(origem.lastIndexOf('.')).toLowerCase(), destino = join(assets, nomeTrilha);
+  if (!existsSync(destino) || statSync(destino).size !== statSync(origem).size) copyFileSync(origem, destino);
+  const arqBatidas = join(comp, 'beats', 'assets', nomeTrilha + '.json');
+  if (!existsSync(arqBatidas)) {
+    // O detector do HyperFrames lê a trilha da composição: monta uma composição mínima só com ela.
+    const d = Math.floor(dur(destino));
+    writeFileSync(join(comp, 'index.html'), `<!doctype html><html><head><meta charset="UTF-8"><script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script></head><body><div id="root" data-composition-id="main" data-start="0" data-duration="${d}" data-width="1080" data-height="1920"><audio id="music" src="assets/${nomeTrilha}" data-start="0" data-duration="${d}" data-track-index="0"></audio></div><script>window.__timelines["main"]=gsap.timeline({paused:true});</script></body></html>`);
+    const r = spawnSync('npx --yes hyperframes beats', { cwd: comp, shell: true, encoding: 'utf8' });
+    if (!existsSync(arqBatidas)) throw new Error('Não consegui detectar as batidas da trilha: ' + String(r.stderr || r.stdout).slice(-300));
+  }
+  const todas = JSON.parse(readFileSync(arqBatidas, 'utf8')).beats.map(b => ({ t: b.time, f: b.strength }));
+  const difs = todas.slice(1).map((b, i) => b.t - todas[i].t).sort((a, b) => a - b), periodo = difs[Math.floor(difs.length / 2)] || 0.6;
+  // Trocas que escondem uma emenda do corte ficam onde estão; as que caem no meio de uma fala contínua podem andar.
+  const mapa = (() => { try { return JSON.parse(readFileSync(resolve(projeto, (C.video || 'corte.mp4').replace(/\.[^.]+$/, '') + '.mapa.json'), 'utf8')); } catch { return null; } })();
+  const emendas = (mapa?.segmentos || []).map(s => s.timeline_inicio).filter(t => t > 0);
+  const naEmenda = x => !mapa || emendas.some(j => Math.abs(j - x) < 0.12) || x >= D - 0.05;
+  const acerta = (rel, x) => rel.some(t => Math.abs(t - x) <= 0.07);
+  let inicio = C.musica.inicio;
+  if (inicio == null) {
+    const fixas = cenas.slice(1).map(c => c.inicio).filter(naEmenda);
+    const base = (todas.find(b => b.f >= 0.75) || todas[0]).t;
+    let melhor = { o: base, n: -1, d: 0 };
+    for (let o = Math.max(0, base - periodo); o <= base + periodo + 1e-9; o += 0.01) {
+      const rel = todas.map(b => b.t - o).filter(t => t > -0.1 && t < DT + 0.1);
+      const n = fixas.filter(x => acerta(rel, x)).length, d = Math.abs(o - base);
+      if (n > melhor.n || (n === melhor.n && d < melhor.d)) melhor = { o, n, d };
+    }
+    inicio = Number(melhor.o.toFixed(3));
+  }
+  const batidas = todas.map(b => ({ t: Number((b.t - inicio).toFixed(3)), f: b.f })).filter(b => b.t >= 0 && b.t < DT - 0.05);
+  const ajustadas = [];
+  if (C.musica.encaixar !== false) for (let i = 1; i < cenas.length; i++) {
+    const x = cenas[i].inicio;
+    if (naEmenda(x)) continue;
+    const b = batidas.reduce((m, y) => (Math.abs(y.t - x) < Math.abs(m.t - x) ? y : m), batidas[0]);
+    if (b && Math.abs(b.t - x) <= 0.22 && b.t - cenas[i - 1].inicio >= 0.6 && cenas[i].fim - b.t >= 0.6) { cenas[i - 1].fim = cenas[i].inicio = b.t; ajustadas.push(`${x.toFixed(2)}→${b.t.toFixed(2)}`); }
+  }
+  musica = { src: 'assets/' + nomeTrilha, inicio, periodo, batidas, ajustadas, volume: C.musica.volume ?? 0.7, carve: C.musica.carve ?? 0.8,
+    acertos: cenas.slice(1).map(c => c.inicio).filter(x => acerta(batidas.map(b => b.t), x)) };
+}
+const mostra =(sel, a, b) => { tl.push(`tl.set("${sel}",{opacity:1},${n3(a)});`); if (b < DT - 0.001) tl.push(`tl.set("${sel}",{opacity:0},${n3(b)});`); };
 const entra = (sel, t, extra = {}) => {
   const { y = 28, d = 0.45, ease = 'expo.out', scale } = extra;
   tl.push(`tl.fromTo("${sel}",{opacity:0,y:${y}${scale ? ',scale:' + scale : ''}},{opacity:1,y:0${scale ? ',scale:1' : ''},duration:${d},ease:"${ease}"},${n3(t)});`);
@@ -166,7 +217,7 @@ function componente(k, cena) {
     }
     case 'botao': {
       const tb = em(k.em, cena), b = id('bt'), dedo = id('dd'), onda = id('on'), seta = id('st');
-      entra(`#${b}`, t0 + 0.08, { y: 40, scale: 0.92 });
+      entra(`#${b}`, t0 + 0.08, { y: 40, scale: 0.92, d: Math.max(0.2, Math.min(0.45, tb - t0 - 0.12)) });
       tl.push(`tl.fromTo("#${dedo}",{opacity:0,x:180,y:220},{opacity:1,x:0,y:0,duration:.55,ease:"expo.out"},${n3(Math.max(t0 + 0.2, tb - 0.55))});`);
       tl.push(`tl.to("#${b}",{scale:.94,duration:.08,ease:"power2.in"},${n3(tb)});tl.to("#${b}",{scale:1,duration:.35,ease:"back.out(2.4)"},${n3(tb + 0.08)});`);
       tl.push(`tl.fromTo("#${onda}",{opacity:.55,scale:.3},{opacity:0,scale:2.6,duration:.7,ease:"expo.out"},${n3(tb)});`);
@@ -208,7 +259,7 @@ html.push(`<div class="camada split" id="split" style="opacity:0"><div class="sp
   + (temPessoa ? `<div class="cabeca" style="height:${PT + 70}px"><video id="pessoa" data-layout-allow-overflow class="clip" src="assets/pessoa.webm" muted playsinline data-start="0" data-duration="${D}" data-track-index="2" style="top:${OFF}px"></video></div>` : '')
   + `</div>`);
 
-const visuaisSplit = [];
+const visuaisSplit = [], telas = [];
 let pushIdx = 0;
 for (const cena of cenas) {
   const { tipo } = cena;
@@ -232,6 +283,7 @@ for (const cena of cenas) {
     } else corpo = componente(cena.visual, cena);
     html.push(`<div class="camada tela fundo-${fundo}" id="${s}" style="opacity:0"><div class="brilho-fundo" data-layout-allow-overflow></div><div class="tela-conteudo">${corpo}</div></div>`);
     mostra(`#${s}`, cena.inicio, cena.fim);
+    telas.push({ s, inicio: cena.inicio, fim: cena.fim });
     if (cena.fade) tl.push(`tl.fromTo("#${s} .tela-conteudo",{opacity:0},{opacity:1,duration:.3,ease:"power2.out"},${n3(cena.inicio)});`);
     if (cena.som !== false && tipo !== 'encerramento') som('passagem', cena.inicio - 0.12, 0.16);
   } else throw new Error('Tipo de cena desconhecido: ' + tipo);
@@ -240,13 +292,27 @@ const splitIdx = html.findIndex(h => h.includes('id="split"'));
 html[splitIdx] = html[splitIdx].replace(`<div class="split-visual" id="split-visual" style="height:${VIS}px"></div>`, `<div class="split-visual" id="split-visual" style="height:${VIS}px">${visuaisSplit.join('')}</div>`);
 if (!html[splitIdx].includes('class="sv"') && visuaisSplit.length) throw new Error('falha ao inserir os visuais do split');
 
+// Movimento no ritmo da trilha: a imagem (não a legenda, que precisa ficar legível) pulsa leve nas batidas fortes;
+// as trocas de cena que caem na batida ganham um punch com flash curto; o brilho das telas respira em cada batida.
+if (musica) {
+  const acentos = new Map();
+  for (const b of musica.batidas) if (b.f >= 0.75) acentos.set(b.t, 1.012);
+  for (const x of musica.acertos) { for (const t of [...acentos.keys()]) if (Math.abs(t - x) < 0.1) acentos.delete(t); acentos.set(x, 1.035); }
+  tl.push('tl.set("#palco",{scale:1},0);tl.set("#flash",{opacity:0},0);');
+  for (const [t, e] of [...acentos].sort((a, b) => a[0] - b[0])) tl.push(`tl.fromTo("#palco",{scale:${e}},{scale:1,duration:${e > 1.02 ? 0.38 : 0.3},ease:"power2.out",immediateRender:false},${n3(t)});`);
+  for (const x of musica.acertos) tl.push(`tl.fromTo("#flash",{opacity:.12},{opacity:0,duration:.22,ease:"power2.out",immediateRender:false},${n3(x)});`);
+  for (const tela of telas) tl.push(`tl.set("#${tela.s} .brilho-fundo",{scale:1},0);`);
+  for (const tela of telas) for (const b of musica.batidas.filter(b => b.t >= tela.inicio && b.t < tela.fim - 0.1))
+    tl.push(`tl.fromTo("#${tela.s} .brilho-fundo",{scale:1.08},{scale:1,immediateRender:false,duration:${n3(Math.min(0.5, musica.periodo * 0.8))},ease:"power2.out"},${n3(b.t)});`);
+}
+
 // Legenda: 1–2 palavras por vez, trocando no início de cada palavra; só nas cenas com legenda.
 const FUNC = new Set(['a', 'o', 'as', 'os', 'de', 'do', 'da', 'dos', 'das', 'e', 'que', 'pra', 'para', 'no', 'na', 'nos', 'nas', 'em', 'um', 'uma', 'se', 'com', 'por', 'eu', 'é', 'vai', 'te', 'me', 'ao', 'à', 'às']);
 const destaque = new Set((C.legenda?.destaques || []).flatMap(d => d.split(/\s+/)).map(norm));
 const max = C.legenda?.palavras_por_vez || 2;
 const legHtml = [];
 for (const cena of cenas.filter(c => c.legenda)) {
-  const ws = palavras.filter(w => w.t >= (cena.legenda_desde != null ? em(cena.legenda_desde, cena) : cena.inicio) - 0.02 && w.t < cena.fim - 0.05);
+  const ws = palavras.filter(w => w.t >= (cena.legenda_desde != null ? em(cena.legenda_desde, cena) : cena.inicio) - 0.02 && w.t < cena.fim - 0.15);   // nada de legenda piscando nos últimos quadros da cena
   const grupos = []; let g = [];
   ws.forEach((w, i) => {
     g.push(w);
@@ -342,6 +408,8 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:${M.escuro}}
 .brilho{position:absolute;top:-20%;bottom:-20%;left:0;width:35%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);transform:skewX(-18deg)}
 .k-fim .logo{width:820px;height:auto}
 .botao.fim{margin-top:10px}
+#palco{position:absolute;inset:0;transform-origin:50% 45%}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
 .legenda{position:absolute;left:110px;right:110px;text-align:center;transform:translateY(-50%)}
 .legenda span{font:800 84px/1.08 "Inter";letter-spacing:-.03em;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.6)}
 .legenda em{font-style:normal;color:var(--d);text-shadow:0 0 26px color-mix(in srgb,var(--d) 60%,transparent),0 4px 16px rgba(0,0,0,.55)}
@@ -360,9 +428,13 @@ const doc = `<!doctype html>
 </head>
 <body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="${DT}" data-width="1080" data-height="1920">
+<div id="palco">
 ${html.join('\n')}
+</div>
+<div id="flash" data-layout-allow-overflow></div>
 ${legHtml.join('\n')}
-<audio id="voz" src="assets/voz.wav" data-start="0" data-duration="${D}" data-track-index="3" data-volume="1"></audio>
+<audio id="voz" data-audio-group="voiceover" src="assets/voz.wav" data-start="0" data-duration="${D}" data-track-index="3" data-volume="1"></audio>${musica ? `
+<audio id="music" data-audio-group="music" src="${musica.src}" data-start="0" data-media-start="${musica.inicio}" data-duration="${DT}" data-track-index="9" data-volume="${musica.volume}" data-automation='${JSON.stringify({ version: 1, lanes: [{ target: 'volume', points: [{ t: 0, v: 0 }, { t: 0.25, v: 1 }, { t: Number((DT - 1.1).toFixed(3)), v: 1 }, { t: DT, v: 0 }] }] })}'></audio>` : ''}
 ${audios.join('\n')}
 </div>
 <script>
@@ -377,7 +449,31 @@ document.fonts.load('800 84px "Inter"').then(() => document.fonts.load('italic 1
 </html>
 `;
 writeFileSync(join(comp, 'index.html'), doc);
+
+// Trilha sob a voz: carve do HyperFrames (mergulhos nas frequências da voz que seguem a fala + nivelamento lento).
+// Precisa de @hyperframes/core: instala uma vez em node_modules/ do kit (fora do Git).
+let mixagem = '';
+if (musica) {
+  const carve = ['.claude', '.agents', '.codex'].map(d => join(homedir(), d, 'skills', 'hyperframes-audio', 'scripts', 'carve.mjs')).find(p => existsSync(p));
+  const core = join(KIT, 'node_modules', '@hyperframes', 'core');
+  if (carve && !existsSync(core)) spawnSync(`npm i --no-save --no-package-lock --no-audit --no-fund --prefix "${KIT}" @hyperframes/core`, { shell: true, stdio: 'inherit' });
+  const r = carve && existsSync(core) ? spawnSync(process.execPath, [carve, '--comp', join(comp, 'index.html'), '--bed', 'music', '--voice', 'voz', '--strength', String(musica.carve), '--core', KIT], { encoding: 'utf8' }) : null;
+  if (r?.status === 0) mixagem = 'trilha com carve sob a voz';
+  else {
+    // Plano B: a trilha baixa onde há fala (ataque 0,1 s, volta em 0,6 s), multiplicada pelo fade de entrada e saída.
+    const fala = [];
+    for (const p of palavras) { const u = fala.at(-1); if (u && p.t - u[1] < 0.4) u[1] = Math.max(u[1], p.f); else fala.push([p.t, p.f]); }
+    const reserva = t => fala.some(([a, b]) => t >= a - 0.1 && t <= b + 0.6) ? 0.22 : 1;
+    const fade = t => Math.min(1, t / 0.25, Math.max(0, (DT - t) / 1.1));
+    const marcas = [...new Set([0, 0.25, DT - 1.1, DT, ...fala.flatMap(([a, b]) => [a - 0.2, a - 0.1, b + 0.6, b + 0.7])])].filter(t => t >= 0 && t <= DT).sort((a, b) => a - b);
+    const pontos = marcas.map(t => ({ t: Number(t.toFixed(3)), v: Number((reserva(t) * fade(t)).toFixed(3)) }));
+    const html2 = readFileSync(join(comp, 'index.html'), 'utf8').replace(/(<audio id="music"[^>]*data-automation=')[^']*(')/, `$1${JSON.stringify({ version: 1, lanes: [{ target: 'volume', points: pontos }] })}$2`);
+    writeFileSync(join(comp, 'index.html'), html2);
+    mixagem = 'trilha com reserva de volume simples (carve do HyperFrames indisponível: ' + (r ? String(r.stderr || r.stdout).trim().split('\n').at(-1) : 'skill hyperframes-audio não encontrada') + ')';
+  }
+}
 // design.md da marca dentro da composição (o HyperFrames trata como verdade da marca)
 copyFileSync(join(KIT, 'marca/design.md'), join(comp, 'design.md'));
 const nLeg = legHtml.length, nCenas = cenas.length;
 console.log(`✓ Composição montada: ${relative(process.cwd(), join(comp, 'index.html'))} — ${DT.toFixed(2)} s, ${nCenas} cenas, ${nLeg} legendas, ${audios.length} efeitos${temPessoa ? '' : ' (sem pessoa.webm: split sem cabeça sobre o painel)'}`);
+if (musica) console.log(`  ♪ ${mixagem}; música a partir de ${musica.inicio.toFixed(2)} s, ${(60 / musica.periodo).toFixed(1)} BPM, ${musica.acertos.length}/${cenas.length - 1} trocas de cena na batida${musica.ajustadas.length ? ` (movidas para a batida: ${musica.ajustadas.join(', ')})` : ''}`);

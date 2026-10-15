@@ -29,6 +29,13 @@ Monta um vídeo falado no estilo `editorial-tech` (veja `estilos/editorial-tech.
   "cenas": [ { "tipo": "rosto", "inicio": 0, "fim": 3.87, "legenda": true } ]
 }
 ```
+- `musica` (opcional, só se o aluno pedir trilha): `{ "arquivo": "caminho/da/musica.mp3", "inicio": null, "volume": 0.7, "carve": 0.8 }`. O template:
+  - detecta as batidas (`npx hyperframes beats`) e escolhe, perto do começo da música, o ponto em que ela entra para que as trocas de cena que escondem emendas caiam na batida (`inicio` força um ponto, em segundos da música);
+  - move até 0,22 s as trocas que acontecem no meio de uma fala contínua para cair na batida (`"encaixar": false` desliga);
+  - pulsa a imagem de leve nas batidas fortes (a legenda fica parada para continuar legível), dá um punch com flash curto nas trocas que caem na batida e faz o brilho das telas respirar no tempo;
+  - abre espaço para a voz com o **carve** do HyperFrames (mergulhos nas frequências da voz que seguem a fala + nivelamento lento; instala `@hyperframes/core` uma vez em `node_modules/` do kit). Sem a skill `hyperframes-audio`, usa uma reserva de volume simples nos trechos de fala;
+  - faz fade de entrada e saída, tira o efeito de passagem e baixa os outros efeitos.
+  Música comercial (de artista) tem direitos: em **anúncio pago** a plataforma costuma reprovar ou silenciar; no orgânico, prefira postar sem trilha e escolher a música no próprio Instagram. Entregue também a versão sem música.
 - `corrigir`: troca palavras que a transcrição errou (mesmo número de palavras).
 - `destaques`: palavras da legenda na cor de destaque da marca (1 por frase, no máximo).
 - Tempos em segundos da **timeline** (do corte). Onde se pede `em`, use a palavra falada (ex.: `"em": "acesso"`) — o elemento entra no início dela; ou um número em segundos.
