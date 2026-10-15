@@ -25,6 +25,10 @@ async function fixture() {
   await writeFile(join(root, 'biblioteca/app.js'), '/* app */');
   await writeFile(join(root, 'biblioteca/biblioteca.css'), '/* css */');
   await writeFile(join(root, `biblioteca/posters/${A}.jpg`), 'jpg');
+  await mkdir(join(root, 'templates/editorial-tech'), { recursive: true });
+  await writeFile(join(root, 'templates/editorial-tech/template.json'), JSON.stringify({ titulo: 'Template de teste', categoria: 'edicao', estilo: 'editorial-tech', aprender: ['um'] }));
+  await writeFile(join(root, 'templates/editorial-tech/capa.jpg'), 'capa');
+  await mkdir(join(root, 'templates/Invalido'), { recursive: true });
   return root;
 }
 async function removeFixture(folder) {
@@ -73,6 +77,10 @@ test('servidor: só lê a biblioteca e só aceita escrita da própria página', 
     assert.ok(html.includes(token));
     const dados = await (await fetch(base + '/api/biblioteca')).json();
     assert.equal(dados.turma.length, 3);
+    assert.deepEqual(dados.templates.map(t => t.id), ['template:editorial-tech']);
+    assert.equal(dados.templates[0].poster, '/templates/editorial-tech/capa.jpg');
+    assert.equal(await (await fetch(base + '/templates/editorial-tech/capa.jpg')).text(), 'capa');
+    assert.equal((await fetch(base + '/templates/editorial-tech/template.json')).status, 404);
     assert.ok(!JSON.stringify(dados).includes(root));
     assert.equal((await fetch(base + '/marca/design.md')).status, 404);
     assert.equal((await fetch(base + '/%2e%2e/AGENTS.md')).status, 404);
@@ -160,6 +168,7 @@ test('guardar, organizar, excluir e restaurar sem tocar em entrada/', async () =
     await local.alterarPreferencias(root, pref => { pref.ocultos.push(A); });
     await assert.rejects(() => local.salvarPreferencias(root, p, p.versao), e => e.code === 'CONFLITO');
     assert.throws(() => local.validarPreferencias({ pastas: [{ nome: 'x', itens: ['../../entrada'] }] }));
+    assert.deepEqual(local.validarPreferencias({ pastas: [{ nome: 'x', itens: ['template:editorial-tech'] }] }).pastas[0].itens, ['template:editorial-tech']);
 
     // Compactar remove só o que dá para gerar de novo.
     const c = await local.compactarProjeto(root, 'meu-video');

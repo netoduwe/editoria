@@ -62,7 +62,7 @@ async function migrarDoNavegador() {
   } catch { /* navegador sem armazenamento: nada a migrar */ }
 }
 
-const todos = () => [...dados.meus, ...dados.turma];
+const todos = () => [...dados.meus, ...(dados.templates || []), ...dados.turma];
 const porId = id => todos().find(i => i.id === id) || dados.lixeira.find(i => i.id === id);
 const oculto = id => dados.preferencias.ocultos.includes(id);
 const pasta = id => dados.preferencias.pastas.find(f => f.id === id);
@@ -73,8 +73,9 @@ const visiveis = () => todos().filter(i => !oculto(i.id));
 function lista() {
   const f = state.filtro, q = state.busca.toLocaleLowerCase('pt-BR');
   let itens;
-  if (state.vista === 'removidos') itens = [...dados.lixeira, ...dados.turma.filter(i => oculto(i.id))];
+  if (state.vista === 'removidos') itens = [...dados.lixeira, ...[...(dados.templates || []), ...dados.turma].filter(i => oculto(i.id))];
   else if (state.aba === 'meus') itens = dados.meus.filter(i => !oculto(i.id));
+  else if (state.aba === 'templates') itens = (dados.templates || []).filter(i => !oculto(i.id));
   else if (pasta(state.aba)) { const ids = pasta(state.aba).itens; itens = visiveis().filter(i => ids.includes(i.id)); }
   else itens = visiveis();
   itens = itens.filter(i => (!f.categoria || i.categoria === f.categoria) && (!f.formato || i.formato === f.formato)
@@ -100,7 +101,7 @@ function cartao(item) {
 
 function corpoDoCartao(item, removidos, lixo) {
   const id = esc(item.id), nome = esc(item.titulo), nota = dados.preferencias.avaliacoes[item.id];
-  const origem = item.tipo === 'turma' ? (item.autor ? `${esc(item.autor)} · Instagram` : 'Da turma') : lixo ? 'Na lixeira' : 'Meu projeto';
+  const origem = item.tipo === 'turma' ? (item.autor ? `${esc(item.autor)} · Instagram` : 'Da turma') : item.tipo === 'template' ? 'Template do kit' : lixo ? 'Na lixeira' : 'Meu projeto';
   let menu = `<button data-detalhes="${id}">Ver detalhes</button>`;
   if (!removidos) {
     menu += `<span class="menu-label">Avaliação</span><div class="actions" role="group" aria-label="Avaliar ${nome}">`
@@ -156,8 +157,9 @@ function vazio() {
 function renderAbas() {
   const v = visiveis(), conta = n => `<small>${n}</small>`;
   if (state.vista === 'removidos') { $('#abas').innerHTML = `<button class="tab active">Removidos e lixeira${conta(dados.lixeira.length + dados.turma.filter(i => oculto(i.id)).length)}</button>`; return; }
-  if (state.aba !== 'tudo' && state.aba !== 'meus' && !pasta(state.aba)) state.aba = 'tudo';
+  if (!['tudo', 'meus', 'templates'].includes(state.aba) && !pasta(state.aba)) state.aba = 'tudo';
   const abas = [['tudo', 'Tudo', v.length], ['meus', 'Meus projetos', dados.meus.filter(i => !oculto(i.id)).length],
+    ...((dados.templates || []).length ? [['templates', 'Templates', dados.templates.filter(i => !oculto(i.id)).length]] : []),
     ...dados.preferencias.pastas.map(f => [f.id, f.nome, v.filter(i => f.itens.includes(i.id)).length])];
   $('#abas').innerHTML = abas.map(([id, nome, n]) => `<button class="tab${state.aba === id ? ' active' : ''}" data-aba="${esc(id)}" aria-pressed="${state.aba === id}">${esc(nome)}${conta(n)}</button>`).join('')
     + '<button class="tab add-tab" data-nova-pasta="" aria-label="Nova pasta">＋ Pasta</button>';
@@ -221,6 +223,9 @@ function assistir(id) {
 // ---------- ações ----------
 
 function pedido(item) {
+  if (item.tipo === 'template') return item.categoria === 'motion'
+    ? `Faz um motion com o template "${item.titulo}" (${item.caminho}) e a minha marca. Mostre a prancha das cenas antes de renderizar. O motion é sobre: `
+    : `Edita o meu vídeo de entrada/ com o template "${item.titulo}" (${item.caminho}) e a minha marca de marca/design.md. Mostre a prancha das cenas antes de renderizar.`;
   if (item.tipo === 'projeto') return item.categoria === 'motion'
     ? `Faz um motion novo usando como base o meu projeto "${item.titulo}" (${item.caminho}): mesmo estilo e acabamento, com a minha marca. O novo motion é sobre: `
     : `Usa o meu projeto "${item.titulo}" (${item.caminho}) como base para editar o meu vídeo novo de entrada/: mesmo estilo, layout e acabamento.`;
@@ -247,7 +252,7 @@ function detalhes(id) {
   $('#detalhes-titulo').textContent = item.titulo;
   const meta = [['Tipo', TIPO[item.categoria] || '—'], ['Formato', [item.formato, duracao(item.duracao)].filter(Boolean).join(' · ') || '—'],
     ['Estilo', item.estilo ? `${item.estilo} (estilos/${item.estilo}.md)` : 'sem receita: o agente estuda a referência'],
-    ['Origem', item.tipo === 'turma' ? (item.autor ? `${item.autor} no Instagram` : 'Biblioteca da turma') : `Seu projeto · ${item.caminho}`]];
+    ['Origem', item.tipo === 'turma' ? (item.autor ? `${item.autor} no Instagram` : 'Biblioteca da turma') : item.tipo === 'template' ? `Template do kit · ${item.caminho}` : `Seu projeto · ${item.caminho}`]];
   if (item.video_final) meta.push(['Vídeo final', item.video_final]);
   if (item.compactado) meta.push(['Espaço', 'compactado: o agente refaz os arquivos pesados se você quiser mexer']);
   const botoes = [(item.video || item.embed) && item.tipo !== 'lixeira' ? `<button data-assistir="${esc(id)}">Assistir no card</button>` : '',

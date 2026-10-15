@@ -1,0 +1,296 @@
+{
+  "template": "editorial-tech",
+  "video": "corte.mp4",
+  "transcricao": "corte-transcricao/transcript.json",
+  "split": {
+    "painel_topo": 1400,
+    "deslocamento": 580,
+    "visual_altura": 400
+  },
+  "corrigir": {
+    "11 do 11,": "11 de 11,"
+  },
+  "legenda": {
+    "palavras_por_vez": 2,
+    "destaques": [
+      "nutricionista",
+      "20 horas",
+      "histórica",
+      "fora"
+    ]
+  },
+  "cenas": [
+    {
+      "tipo": "rosto",
+      "inicio": 0,
+      "fim": 3.87,
+      "legenda": true,
+      "legenda_desde": "pra",
+      "legenda_y": 865
+    },
+    {
+      "tipo": "tela",
+      "inicio": 3.87,
+      "fim": 5.7,
+      "fundo": "claro",
+      "fade": true,
+      "visual": {
+        "tipo": "titulo",
+        "icone": "check",
+        "icone_em": "notícia",
+        "linhas": [
+          {
+            "partes": [
+              {
+                "texto": "A boa",
+                "em": "boa"
+              }
+            ]
+          },
+          {
+            "partes": [
+              {
+                "texto": "notícia",
+                "em": "notícia"
+              }
+            ],
+            "cor": "destaque"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "split",
+      "inicio": 5.7,
+      "fim": 9.37,
+      "visual": {
+        "tipo": "titulo",
+        "rotulo": "Formação",
+        "rotulo_em": "formação",
+        "icone": "infinito",
+        "icone_em": "acesso",
+        "linhas": [
+          {
+            "partes": [
+              {
+                "texto": "Nutrição",
+                "em": "nutrição"
+              },
+              {
+                "texto": "Avançada",
+                "em": "avançada"
+              }
+            ],
+            "tamanho": 112
+          },
+          {
+            "partes": [
+              {
+                "texto": "acesso vitalício",
+                "em": "acesso"
+              }
+            ],
+            "estilo": "sans",
+            "cor": "destaque",
+            "tamanho": 70
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "tela",
+      "inicio": 9.37,
+      "fim": 12.8,
+      "fundo": "escuro",
+      "visual": {
+        "tipo": "calendario",
+        "rotulo": "Black Friday",
+        "rotulo_em": "black",
+        "sub": {
+          "texto": "revelação",
+          "em": "revelar"
+        },
+        "data": "11/11",
+        "em": "11"
+      }
+    },
+    {
+      "tipo": "rosto",
+      "inicio": 12.8,
+      "fim": 13.93,
+      "legenda": true,
+      "legenda_y": 865
+    },
+    {
+      "tipo": "tela",
+      "inicio": 13.93,
+      "fim": 15.4,
+      "fundo": "alerta",
+      "visual": {
+        "tipo": "titulo",
+        "icone": "x",
+        "icone_em": "má",
+        "linhas": [
+          {
+            "partes": [
+              {
+                "texto": "A má",
+                "em": "má"
+              }
+            ],
+            "cor": "alerta"
+          },
+          {
+            "partes": [
+              {
+                "texto": "notícia",
+                "em": "notícia"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "rosto",
+      "inicio": 15.4,
+      "fim": 18.25,
+      "legenda": true
+    },
+    {
+      "tipo": "tela",
+      "inicio": 18.25,
+      "fim": 19.63,
+      "fundo": "preto",
+      "visual": {
+        "tipo": "titulo",
+        "som": "pop",
+        "linhas": [
+          {
+            "partes": [
+              {
+                "texto": "você vai se",
+                "em": "você"
+              }
+            ],
+            "estilo": "sans",
+            "tamanho": 72
+          },
+          {
+            "partes": [
+              {
+                "texto": "arrepender",
+                "em": "arrepender"
+              }
+            ],
+            "cor": "alerta",
+            "tamanho": 150
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "rosto",
+      "inicio": 19.63,
+      "fim": 21.55,
+      "legenda": true
+    },
+    {
+      "tipo": "tela",
+      "inicio": 21.55,
+      "fim": 23,
+      "fundo": "escuro",
+      "visual": {
+        "tipo": "botao",
+        "rotulo": "clique no botão",
+        "rotulo_em": "clique",
+        "texto": "Saiba mais",
+        "em": "botãozinho",
+        "seta_em": "abaixo"
+      }
+    },
+    {
+      "tipo": "split",
+      "inicio": 23,
+      "fim": 26.83,
+      "visual": {
+        "tipo": "chat",
+        "antes": {
+          "texto": "direcionado para o",
+          "em": "direcionado"
+        },
+        "em": "grupo",
+        "nome": "Grupo VIP",
+        "sub": "Black Vitalícia · Nutrição Avançada",
+        "mensagens": [
+          {
+            "texto": "Mais informações sobre essa oferta",
+            "em": "informações"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "tela",
+      "inicio": 26.83,
+      "fim": 29.7,
+      "fundo": "escuro",
+      "visual": {
+        "tipo": "grade",
+        "rotulo": "Oferta histórica",
+        "rotulo_em": "oferta",
+        "em": "todos",
+        "quantidade": 12,
+        "linhas": [
+          {
+            "partes": [
+              {
+                "texto": "todos os meus",
+                "em": "todos"
+              }
+            ],
+            "tamanho": 100
+          },
+          {
+            "partes": [
+              {
+                "texto": "cursos",
+                "em": "cursos"
+              }
+            ],
+            "cor": "destaque",
+            "tamanho": 100
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "split",
+      "inicio": 29.7,
+      "fim": 32.63,
+      "visual": {
+        "tipo": "oferta",
+        "itens": [
+          {
+            "simbolo": "infinito",
+            "titulo": "Acesso vitalício",
+            "sub": "a todos os cursos",
+            "em": "acesso"
+          },
+          {
+            "simbolo": "1×",
+            "titulo": "Pague uma vez",
+            "sub": "uma única vez",
+            "em": "pagando"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "encerramento",
+      "inicio": 32.63,
+      "fim": 34.13,
+      "cta": "Toque em saiba mais"
+    }
+  ]
+}
