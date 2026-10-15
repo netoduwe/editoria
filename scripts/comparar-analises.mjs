@@ -15,6 +15,7 @@ const regras = [
   ["Duração média do plano (s)", "ritmo.plano_medio_s", "rel", 0.25, "planos longos demais: corte mais ou troque de layout com mais frequência", "cortando demais: segure mais cada plano"],
   ["Cortes por minuto", "ritmo.cortes_por_minuto", "rel", 0.25, "cortes demais", "cortes de menos: aumente trocas de plano/layout"],
   ["Cortes nos 3 s iniciais", "ritmo.cortes_nos_3s_iniciais", "abs", 1, "gancho agitado demais", "gancho parado: acelere as trocas no início"],
+  ["Trocas de cena por câmera/min", "camera.transicoes_por_minuto", "abs", 4, "movimentos de câmera demais", "faltam trocas de cena por movimento de câmera (whip/mergulho) — a referência não usa só corte"],
   ["Animações/zooms por minuto", "movimento.picos_por_minuto", "rel", 0.35, "animação demais", "animação de menos: mais entradas de elementos/punch-ins"],
   ["Movimento de base", "movimento.diferenca_mediana", "rel", 0.6, "quadro agitado demais (zoom contínuo/câmera)", "quadro parado demais: push lento ou leve movimento"],
   ["Brilho (0–255)", "cor.brilho_medio_0a255", "abs", 20, "imagem mais clara que a referência", "imagem mais escura que a referência"],

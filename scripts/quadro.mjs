@@ -1,26 +1,29 @@
 #!/usr/bin/env node
 // Olhar de perto um instante do vídeo: quadro em resolução cheia, grade de medição, cor exata, recorte ampliado
 // e sequência quadro a quadro (para cronometrar animações).
-// Uso: node scripts/quadro.mjs <video> <tempo_s> [--grade] [--cor x,y[;x,y…]] [--recorte x,y,l,a] [--seq 0.5] [--saida pasta]
+// Uso: node scripts/quadro.mjs <video> <tempo_s> [--grade] [--texto] [--cor x,y[;x,y…]] [--recorte x,y,l,a] [--seq 0.5] [--saida pasta]
 //   --grade        linhas a cada 10% (finas) e 50% (grossas): leia posição/tamanho em % e converta para px
+//   --texto        acha as linhas de texto e estima altura das maiúsculas, corpo, peso, cor e posição (sem OCR)
 //   --cor          média de 5×5 px em cada ponto (coordenadas do quadro inteiro) → #HEX
 //   --recorte      recorta x,y,largura,altura (px) e amplia 2× — para identificar a fonte e ver contorno/sombra
 //   --seq d        d segundos (máx 1) de quadros consecutivos na taxa nativa → cronometrar entradas/saídas
 import { spawnSync } from "node:child_process";
 import { mkdirSync, existsSync } from "node:fs";
 import { join, dirname, relative, isAbsolute } from "node:path";
+import { quadro as lerQuadro, linhasDeTexto, descreverLinha } from "./_visao.mjs";
 
 const args = process.argv.slice(2);
 const flag = (k) => { const i = args.indexOf(k); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : undefined; };
 const grade = flag("--grade");
+const texto = flag("--texto");
 const cores = opt("--cor");
 const recorte = opt("--recorte");
 const seq = opt("--seq");
 const saidaArg = opt("--saida");
 const [video, tArg] = args;
 if (!video || tArg === undefined || !existsSync(video)) {
-  console.error("Uso: node scripts/quadro.mjs <video> <tempo_s> [--grade] [--cor x,y;x,y] [--recorte x,y,l,a] [--seq 0.5] [--saida pasta]");
+  console.error("Uso: node scripts/quadro.mjs <video> <tempo_s> [--grade] [--texto] [--cor x,y;x,y] [--recorte x,y,l,a] [--seq 0.5] [--saida pasta]");
   process.exit(1);
 }
 const t = Number(tArg);
@@ -41,6 +44,15 @@ if (grade) {
   ff(["-frames:v", "1", "-vf", "drawgrid=w=iw/10:h=ih/10:t=1:c=0xFF00FF@0.55,drawgrid=w=iw/2:h=ih/2:t=3:c=0xFF00FF@0.8", g]);
   res.grade = g;
   res.grade_explicacao = "linhas finas a cada 10% da largura/altura, grossas no meio; em 1080×1920: 108 px na horizontal, 192 px na vertical";
+}
+if (texto) {
+  const pr = JSON.parse(spawnSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height:stream_side_data=rotation", "-of", "json", video], { encoding: "utf8" }).stdout).streams[0];
+  const rot = Math.abs(Number(pr.side_data_list?.find((d) => d.rotation !== undefined)?.rotation ?? 0));
+  let [W, H] = rot === 90 || rot === 270 ? [pr.height, pr.width] : [pr.width, pr.height];
+  const lado = Math.max(W, H);
+  if (lado > 1920) { W = Math.round((W * 1920) / lado / 2) * 2; H = Math.round((H * 1920) / lado / 2) * 2; }
+  res.texto = linhasDeTexto(lerQuadro(video, t, W, H, "rgb24"), W, H).map((l) => descreverLinha(l, W, H));
+  res.texto_explicacao = `medido em ${W}×${H}: altura das maiúsculas (px e % do lado menor), corpo CSS ≈ maiúscula ÷ 0,72 (faixa quando a linha só tem minúsculas), "em_1080" = mesma proporção com 1080 px no lado menor. Acentos e aspas podem aumentar a medida: confira na grade`;
 }
 if (cores) {
   res.cores = cores.split(";").map((p) => {

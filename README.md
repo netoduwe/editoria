@@ -37,6 +37,7 @@ Também dá para pedir ao agente: *"guarda esse projeto na pasta Anúncios"*, *"
 | `editorial-tech` | Conteúdo premium: layouts que mudam com a fala, cards, cabeça saindo do painel |
 | `aula-split` | Cortes de aula/live: slide em cima, você embaixo |
 | `minimalista` | Podcast, entrevista, depoimento: limpo e elegante |
+| `doc-tech` | Documental investigativo: foto de arquivo, câmera que viaja pelo cenário, número gigante, uma palavra em vermelho |
 
 Crie o seu: copie um arquivo de `estilos/`, mude o que quiser e peça "usa o estilo <nome>".
 
