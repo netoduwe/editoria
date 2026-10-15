@@ -116,9 +116,14 @@ const cenas = C.cenas.map(c => ({ ...c }));
 const DT = Number((Math.max(D, ...cenas.map(c => c.fim))).toFixed(3));
 
 // ---------- trilha (opcional): batidas para encaixar o movimento ----------
-// "musica": { "arquivo": "...mp3", "inicio": null, "volume": 0.7, "carve": 0.8 }
+// "musica": { "arquivo": "...mp3" } — opcionais: "inicio", "nivel_db" (0 = música no nível da voz antes do carve), "carve" (0.6), "encaixar" (true), "volume" (fixo, ignora nivel_db)
 // inicio = segundos na música em que o vídeo começa; sem ele, o template escolhe, perto do começo da música,
 // o ponto que faz mais trocas de cena caírem na batida (as trocas não mudam: elas escondem as emendas do corte).
+// Loudness integrada (LUFS) de um arquivo ou de um trecho dele, medida pelo FFmpeg.
+const lufs = (arq, de = 0, por = null) => Number(/I:\s+(-?[\d.]+) LUFS/.exec(spawnSync('ffmpeg', ['-nostdin', '-hide_banner', '-ss', String(de), ...(por ? ['-t', String(por)] : []), '-i', arq, '-vn', '-af', 'ebur128', '-f', 'null', '-'], { encoding: 'utf8' }).stderr.split('Summary:').pop())?.[1]);
+// Nível de partida da música: igual ao da voz (nivel_db = 0); o carve abre o espaço quando há fala.
+// Música de artista vem masterizada muito alta (~-9 LUFS) e a voz bruta fica perto de -24: sem isso a música engole a voz.
+const nivelAuto = (trilha, inicio) => { const v = lufs(join(assets, 'voz.wav')), m = lufs(trilha, inicio, DT); return Number.isFinite(v) && Number.isFinite(m) ? Number(Math.min(1, Math.max(0.03, 10 ** ((v + (C.musica?.nivel_db ?? 0) - m) / 20))).toFixed(3)) : 0.3; };
 let musica = null;
 if (C.musica) {
   const origem = resolve(projeto, C.musica.arquivo || '');
@@ -160,7 +165,7 @@ if (C.musica) {
     const b = batidas.reduce((m, y) => (Math.abs(y.t - x) < Math.abs(m.t - x) ? y : m), batidas[0]);
     if (b && Math.abs(b.t - x) <= 0.22 && b.t - cenas[i - 1].inicio >= 0.6 && cenas[i].fim - b.t >= 0.6) { cenas[i - 1].fim = cenas[i].inicio = b.t; ajustadas.push(`${x.toFixed(2)}→${b.t.toFixed(2)}`); }
   }
-  musica = { src: 'assets/' + nomeTrilha, inicio, periodo, batidas, ajustadas, volume: C.musica.volume ?? 0.7, carve: C.musica.carve ?? 0.8,
+  musica = { src: 'assets/' + nomeTrilha, inicio, periodo, batidas, ajustadas, volume: C.musica.volume ?? nivelAuto(destino, inicio), carve: C.musica.carve ?? 0.6,
     acertos: cenas.slice(1).map(c => c.inicio).filter(x => acerta(batidas.map(b => b.t), x)) };
 }
 const mostra =(sel, a, b) => { tl.push(`tl.set("${sel}",{opacity:1},${n3(a)});`); if (b < DT - 0.001) tl.push(`tl.set("${sel}",{opacity:0},${n3(b)});`); };
@@ -434,7 +439,7 @@ ${html.join('\n')}
 <div id="flash" data-layout-allow-overflow></div>
 ${legHtml.join('\n')}
 <audio id="voz" data-audio-group="voiceover" src="assets/voz.wav" data-start="0" data-duration="${D}" data-track-index="3" data-volume="1"></audio>${musica ? `
-<audio id="music" data-audio-group="music" src="${musica.src}" data-start="0" data-media-start="${musica.inicio}" data-duration="${DT}" data-track-index="9" data-volume="${musica.volume}" data-automation='${JSON.stringify({ version: 1, lanes: [{ target: 'volume', points: [{ t: 0, v: 0 }, { t: 0.25, v: 1 }, { t: Number((DT - 1.1).toFixed(3)), v: 1 }, { t: DT, v: 0 }] }] })}'></audio>` : ''}
+<audio id="music" data-audio-group="music" src="${musica.src}" data-start="0" data-media-start="${musica.inicio}" data-duration="${DT}" data-track-index="9" data-volume="${musica.volume}" data-automation="${esc(JSON.stringify({ version: 1, lanes: [{ target: 'volume', points: [{ t: 0, v: 0 }, { t: 0.25, v: musica.volume }, ...(DT - D > 1 ? [{ t: Number((D + 0.2).toFixed(3)), v: musica.volume }, { t: Number((D + 0.55).toFixed(3)), v: Number(Math.min(1, musica.volume * 2).toFixed(3)) }, { t: Number((DT - 0.6).toFixed(3)), v: Number(Math.min(1, musica.volume * 2).toFixed(3)) }] : [{ t: Number((DT - 1.1).toFixed(3)), v: musica.volume }]), { t: DT, v: 0 }] }] }))}"></audio>` : ''}
 ${audios.join('\n')}
 </div>
 <script>
@@ -464,10 +469,10 @@ if (musica) {
     const fala = [];
     for (const p of palavras) { const u = fala.at(-1); if (u && p.t - u[1] < 0.4) u[1] = Math.max(u[1], p.f); else fala.push([p.t, p.f]); }
     const reserva = t => fala.some(([a, b]) => t >= a - 0.1 && t <= b + 0.6) ? 0.22 : 1;
-    const fade = t => Math.min(1, t / 0.25, Math.max(0, (DT - t) / 1.1));
+    const fade = t => musica.volume * Math.min(1, t / 0.25, Math.max(0, (DT - t) / 1.1));   // a automação substitui o data-volume
     const marcas = [...new Set([0, 0.25, DT - 1.1, DT, ...fala.flatMap(([a, b]) => [a - 0.2, a - 0.1, b + 0.6, b + 0.7])])].filter(t => t >= 0 && t <= DT).sort((a, b) => a - b);
     const pontos = marcas.map(t => ({ t: Number(t.toFixed(3)), v: Number((reserva(t) * fade(t)).toFixed(3)) }));
-    const html2 = readFileSync(join(comp, 'index.html'), 'utf8').replace(/(<audio id="music"[^>]*data-automation=')[^']*(')/, `$1${JSON.stringify({ version: 1, lanes: [{ target: 'volume', points: pontos }] })}$2`);
+    const html2 = readFileSync(join(comp, 'index.html'), 'utf8').replace(/(<audio id="music"[^>]*data-automation=")[^"]*(")/, `$1${esc(JSON.stringify({ version: 1, lanes: [{ target: 'volume', points: pontos }] }))}$2`);
     writeFileSync(join(comp, 'index.html'), html2);
     mixagem = 'trilha com reserva de volume simples (carve do HyperFrames indisponível: ' + (r ? String(r.stderr || r.stdout).trim().split('\n').at(-1) : 'skill hyperframes-audio não encontrada') + ')';
   }

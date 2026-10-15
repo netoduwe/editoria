@@ -50,6 +50,7 @@ node scripts/verificar.mjs saida/<nome>.mp4 --guias
 - Cada efeito sonoro nasce de um evento visual (entrada de card, impacto, troca de cena). Nada "solto" ou herdado de outro projeto.
 - O pico do som cai no quadro do evento: o whoosh termina no corte, o impacto começa no impacto.
 - Um efeito por grupo de eventos, não um por elemento; efeitos 10–15 dB abaixo da voz ou da música.
+- Com trilha: renderize também a versão sem música e rode `node scripts/voz-musica.mjs saida/<nome>-trilha.mp4 saida/<nome>.mp4 --ate <fim da fala>` (depois da fala, efeitos sonoros com volume diferente nas duas versões aparecem como música). A voz precisa ficar 10–18 dB acima da música em toda janela com fala; abaixo de 8 dB a música compete com a voz.
 - Masterizado com `node scripts/masterizar.mjs` (−14 LUFS; mira −1,5 dBTP porque a compressão AAC sobe o pico uns décimos).
 
 ## 6. Liberar
