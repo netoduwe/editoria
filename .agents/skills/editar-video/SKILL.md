@@ -1,6 +1,6 @@
 ---
 name: editar-video
-description: Edita um vídeo falado do aluno (Reels, Shorts, TikTok, aula, anúncio) do bruto ao MP4 final — transcreve, escolhe as melhores tomadas, corta pela energia da voz, monta no HyperFrames num estilo da pasta estilos/ (com o template do estilo, quando existe), mostra a prancha das cenas para aprovação, legenda, masteriza, entrega em saida/ e guarda na biblioteca. Use quando o aluno pedir "edita", "corta", "legenda", "deixa bonito", mandar um vídeo (em entrada/ ou o caminho de qualquer pasta) ou colar um pedido da biblioteca ("edita no estilo…", "com o template…", "usa o meu projeto … como base").
+description: Edita um vídeo falado do aluno (Reels, Shorts, TikTok, aula, anúncio) do bruto ao MP4 final — transcreve, escolhe as melhores tomadas, corta pela energia da voz, monta no HyperFrames num estilo da pasta estilos/ (com o template do estilo, quando existe), insere B-roll da get-brolls como cutaways sincronizados com a fala, mostra a prancha das cenas para aprovação, legenda, masteriza, entrega em saida/ e guarda na biblioteca. Use quando o aluno pedir "edita", "corta", "legenda", "deixa bonito", mandar um vídeo (em entrada/ ou o caminho de qualquer pasta) ou colar um pedido da biblioteca ("edita no estilo…", "com o template…", "usa o meu projeto … como base").
 ---
 
 # Editar vídeo (bruto → MP4 pronto)
@@ -69,6 +69,30 @@ O template aplica a marca, legendas sincronizadas, efeitos sonoros próprios (se
 **Sem template**: crie a composição com `npx hyperframes init` (como acima), copie para `composicao/assets/` o `corte.mp4`, as fontes de `fontes/` e a logo de `marca/logo/`, e `marca/design.md` como `composicao/design.md`. Carregue a skill `hyperframes` e siga `general-video` em modo automação, sem storyboard, montando exatamente o que a receita descreve.
 - Áudio: a voz vem do corte; SFX só onde o estilo pede, cada um preso a um evento da tela com o pico no quadro do evento. A skill `media-use` só busca SFX com login no HeyGen; sem ele, gere efeitos curtos e graves com o FFmpeg (veja como em `templates/editorial-tech/montar.mjs`). Sem música, a menos que o aluno peça ou a marca defina.
 - Legendas: fragmentos de 1–4 palavras, quebrando em pontuação/pausa; artigo e preposição grudam na palavra seguinte; nunca um fragmento só com "a", "de", "que".
+
+### B-roll como inserts (get-brolls)
+Quando o pedido ou o roteiro pede imagem de apoio (fato, notícia, marca, pessoa, produto, dado literal; veja `AGENTS.md`), colete com a skill get-brolls **depois do passo 4**, porque os tempos vêm da transcrição do corte.
+1. **Coleta** em `projetos/<nome>/broll/`, separada da composição (a get-brolls grava `BRIEF.md` e `RULES.md` na raiz do projeto dela, e eles não podem misturar com os da composição). Use caminhos absolutos e formato vertical:
+   ```bash
+   python "<kit>/.agents/skills/get-brolls/scripts/gb.py" init-brief --project "<kit>/projetos/<nome>/broll"
+   python "<kit>/.agents/skills/get-brolls/scripts/gb.py" init-rules --format reels --force --project "<kit>/projetos/<nome>/broll"
+   ```
+   Um beat por trecho de fala que precisa de apoio, com o `id` curto do assunto (ex.: `lancamento-iphone`) e a frase exata. Anote no seu plano o tempo de **timeline** de cada beat (início da palavra que cita o fato, em `corte-transcricao/transcript.json`). Siga a `SKILL.md` da get-brolls até o fim: prévias, **aprovação do aluno no Storyboard ou no chat** (nunca se autoaprove), `permit`, `fetch`, `verify` e `deliver`.
+2. **O que chega:** `projetos/<nome>/broll/entrega/NN-<beat>-<assunto>/` com o `.mp4` já cortado no trecho aprovado, a folha de quadros e o `ORIGEM.md` (fonte, autor, trecho, direitos). A mídia entregue é um hardlink **somente leitura** de `broll/brolls/clips/`: não edite nem mova; **copie**.
+3. **Para a composição:** copie cada corte para `composicao/assets/broll/<beat>.mp4` (o HyperFrames só enxerga o que está dentro da pasta da composição). Com template: o `editorial-tech` ainda não tem cena de B-roll, e o `index.html` que o `montar.mjs` gera não se edita à mão. Num vídeo que precisa de B-roll, monte sem template ou avise o aluno que o template ainda não aceita inserts.
+4. **Insert sincronizado com a fala:** um `<video>` por beat, numa trilha acima do vídeo do aluno e abaixo da legenda:
+   ```html
+   <video id="broll-lancamento-iphone" class="clip" src="assets/broll/lancamento-iphone.mp4"
+     data-start="12.34" data-duration="2.2" data-media-start="0" data-track-index="5" muted playsinline
+     style="position:absolute;left:0;top:0;width:1080px;height:1920px;object-fit:cover;z-index:20"></video>
+   ```
+   - `data-start` = início da palavra que cita o fato na transcrição do corte, menos ~0,1 s (a imagem chega junto com a palavra). `data-duration` = até o fim da frase, 1,5–3 s, nunca mais que o corte entregue. `data-media-start` escolhe o momento dentro do corte (0 = início do trecho aprovado).
+   - **Cutaway, não corte:** o insert é `muted` e a voz do aluno continua por baixo. Só use o som do B-roll (`data-has-audio="true"` sem `muted`, com a voz abaixada no trecho) se o aluno pediu "o X falando Y".
+   - Enquadramento: material 16:9 num vídeo 9:16 com `object-fit:cover` corta as laterais. Se o assunto sair do quadro, use `object-fit:contain` sobre o fundo da marca, ou um card com o vídeo em ~860 px de largura dentro da faixa segura. Legenda e textos ficam por cima (z-index maior) e dentro da faixa segura.
+   - Entrada e saída curtas (corte seco, ou fade/escala de 0,15–0,25 s), sem cobrir o rosto em mais de 3 s seguidos. Confira se o `data-duration` da composição raiz cobre o fim de cada insert.
+5. **Créditos:** se o `ORIGEM.md` pede atribuição, inclua o crédito (autor/fonte) na entrega ao aluno para a legenda do post, ou num rótulo discreto no próprio insert. Nunca use um corte sem `ORIGEM.md`.
+
+Os inserts entram na prancha do passo 6 como cenas (mostre o quadro do meio de cada um) e passam pela revisão do passo 7 como qualquer troca de cena.
 
 ## 6. Prancha para aprovação (antes de qualquer render)
 Edição com cenas gráficas (template, cards, telas, split) **para aqui** até o aluno aprovar. Edição só com legenda pode seguir direto, a menos que o aluno peça a prancha.
