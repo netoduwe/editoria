@@ -8,6 +8,8 @@ marca/logo/*
 biblioteca/local/
 !*/.gitkeep
 !marca/logo/.gitkeep
+# skill de B-roll: clonada no setup (repositório próprio, com .venv/ e .tools/ locais)
+.agents/skills/get-brolls/
 node_modules/
 .DS_Store
 Thumbs.db

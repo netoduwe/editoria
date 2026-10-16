@@ -17,12 +17,12 @@ Se a pasta já tem o CLAUDE.md, pule esta etapa.
 Leia o CLAUDE.md (ou AGENTS.md) desta pasta: ele descreve como o editor funciona.
 
 ETAPA 1 — Diagnóstico
-Descubra meu sistema (Windows, macOS ou Linux), espaço livre em disco (preciso de pelo menos 10 GB) e memória. Verifique se já existem: Node.js 20+, FFmpeg/FFprobe, Git, Google Chrome e yt-dlp. Me mostre uma lista curta do que já tenho e do que falta.
+Descubra meu sistema (Windows, macOS ou Linux), espaço livre em disco (preciso de pelo menos 10 GB) e memória. Verifique se já existem: Node.js 22+, FFmpeg/FFprobe, Git, Google Chrome, yt-dlp e Python 3.11+ (este só para o B-roll). Me mostre uma lista curta do que já tenho e do que falta.
 
 ETAPA 2 — Instalar o que faltar
-- Windows: use winget (Node: OpenJS.NodeJS.LTS · FFmpeg: Gyan.FFmpeg · Git: Git.Git · Chrome: Google.Chrome · yt-dlp: yt-dlp.yt-dlp).
-- macOS: use Homebrew (instale o Homebrew antes, se faltar): brew install node ffmpeg git yt-dlp; Chrome com brew install --cask google-chrome.
-- Linux: use o gerenciador da distro; yt-dlp pelo binário oficial (github.com/yt-dlp/yt-dlp/releases) ou pipx install "yt-dlp[default]".
+- Windows: use winget (Node: OpenJS.NodeJS.LTS · FFmpeg: Gyan.FFmpeg · Git: Git.Git · Chrome: Google.Chrome · yt-dlp: yt-dlp.yt-dlp · Python: Python.Python.3.12).
+- macOS: use Homebrew (instale o Homebrew antes, se faltar): brew install node ffmpeg git yt-dlp python@3.12; Chrome com brew install --cask google-chrome.
+- Linux: use o gerenciador da distro (Python 3.11+ incluído); yt-dlp pelo binário oficial (github.com/yt-dlp/yt-dlp/releases) ou pipx install "yt-dlp[default]".
 O yt-dlp serve para baixar vídeos de referência (YouTube, Instagram, TikTok) e copiar o estilo de edição deles. Ele usa o próprio Node como motor de JavaScript para o YouTube; não precisa instalar mais nada. Se já existir um yt-dlp antigo, atualize-o (os sites mudam com frequência).
 Depois de instalar, confirme que cada programa responde no terminal. Se o terminal não enxergar um programa recém-instalado, me peça para fechar e reabrir o terminal/app e continue de onde parou.
 
@@ -31,6 +31,13 @@ Rode, nesta ordem, e me mostre um resumo de cada resultado:
 1. npx --yes hyperframes skills            (instala as skills de vídeo no Claude Code e no Codex)
 2. npx --yes hyperframes models install parakeet   (transcrição local em português, ~640 MB)
 3. npx --yes hyperframes doctor             (Node, FFmpeg, FFprobe e Chrome precisam estar ✓; whisper-cpp e TTS podem ficar ✗)
+
+ETAPA 3B — B-roll (skill get-brolls)
+Busca imagens e vídeos de apoio (notícia, marca, pessoa, produto) com prévia para eu aprovar e origem registrada. Rode nesta pasta:
+1. git clone https://github.com/engenheirodevideo/get-brolls.git .agents/skills/get-brolls   (se a pasta já existir, rode git -C .agents/skills/get-brolls pull)
+2. Windows: powershell -ExecutionPolicy Bypass -File .agents/skills/get-brolls/scripts/install.ps1 · macOS/Linux: bash .agents/skills/get-brolls/scripts/install.sh
+3. python .agents/skills/get-brolls/scripts/gb.py doctor   (no macOS/Linux: python3). Precisa mostrar "missing" vazio.
+Se esta etapa falhar, me diga o motivo e siga o setup: só o B-roll fica indisponível até resolver.
 
 ETAPA 4 — Teste de verdade
 Rode: node scripts/teste-setup.mjs
@@ -58,6 +65,7 @@ Me mostre:
   "edita entrada/aula.mp4 no estilo aula-split"
   "copia o estilo deste vídeo: <link do Reels/YouTube/TikTok>" (explique que dá para mandar 2–3 vídeos do mesmo criador e que o estilo novo fica salvo em estilos/ para usar sempre)
   "faz um motion de 10 segundos anunciando meu curso" (explique que motion começa por storyboard e que posso jogar referências em referencias/).
+  "edita entrada/meu-video.mp4 com b-roll nas partes em que eu cito notícias" (explique que eu aprovo cada trecho antes de entrar no vídeo e que a origem de cada um fica registrada).
 - a biblioteca: rode node scripts/biblioteca.mjs em segundo plano, me dê o endereço http://127.0.0.1:9127/ e explique em 3 linhas: Assistir toca no card; Usar como referência copia um pedido pronto; cada vídeo que você editar para mim fica guardado em Meus projetos, e posso criar pastas.
 ```
 

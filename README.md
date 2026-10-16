@@ -51,6 +51,9 @@ Ele copia a **linguagem** da edição, não a identidade: as cores e a logo cont
 ## Motion design
 Peça: *"faz um motion de 10 s anunciando X"*. Antes, coloque prints e vídeos que você gosta em `referencias/`. O agente mostra um **storyboard** primeiro; só depois de você aprovar ele anima e renderiza.
 
+## B-roll (imagens de apoio)
+Peça: *"edita entrada/meu-video.mp4 com b-roll nas partes em que eu cito notícias"*, ou só *"põe b-roll no minuto 0:12"*. Quando o seu roteiro cita fato, notícia, marca, pessoa ou dado, o agente usa a skill [get-brolls](https://github.com/engenheirodevideo/get-brolls) (instalada no setup): busca a fonte de verdade, mostra as prévias para você aprovar e só então baixa o trecho, que entra no vídeo sincronizado com a sua fala. A origem e as condições de uso de cada trecho ficam registradas em `projetos/<nome>/broll/entrega/`.
+
 ## Pastas
 `entrada/` seus brutos (nunca alterados) · `saida/` vídeos prontos · `projetos/` bastidores de cada edição (os guardados aparecem na biblioteca) · `biblioteca/` o feed · `marca/` sua identidade · `estilos/` receitas · `referencias/` inspirações e vídeos de referência · `fontes/` fontes livres · `scripts/` ferramentas.
 
