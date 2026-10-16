@@ -10,6 +10,8 @@ Motion bom nasce de direção, não de improviso. **Nada é construído antes do
 ## 1. Brief em uma mensagem
 Leia `marca/design.md` e as referências: arquivos em `referencias/` e, se o pedido veio da biblioteca, o item citado (ID em `biblioteca/catalogo.json`; links com `node scripts/biblioteca.mjs listar --json`). Para estudar um vídeo de referência, baixe só ele — `node scripts/baixar-referencia.mjs "<link do Drive ou do post original>" <nome>` — e veja a folha com `node scripts/verificar.mjs <video> --rapido`. Escreva em 3 linhas o que torna a referência boa (ritmo, tipografia, transições, áudio), usando o [vocabulário de movimento](references/vocabulario.md).
 
+**Régua de qualidade.** Se o aluno não trouxe referência de motion (ou só trouxe prints), estude também os motions de @miftahul_islam_efaz na biblioteca (`node scripts/biblioteca.mjs listar` mostra o autor; o link do post está em `--json`). É o nível a buscar: objeto 3D com luz de verdade em vez de ícone chapado, telas recriadas como componentes vivos em vez de print, uma imagem por frase. Copie a linguagem, nunca a arte.
+
 Pergunte numa mensagem só o que faltar:
 - objetivo e onde vai rodar (Reels, anúncio, Stories, YouTube, abertura de aula) — define formato e faixa segura ([formatos](references/formatos.md));
 - texto exato, com a grafia final (acentos, maiúsculas), e o CTA;
