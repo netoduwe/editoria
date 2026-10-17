@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "atualizado_em": "2026-10-15",
+  "atualizado_em": "2026-10-16",
   "itens": [
     {
       "id": "54792d89df860aeacb7b",
@@ -15,6 +15,54 @@
       "formato": "9:16",
       "duracao": 42.6,
       "poster": "posters/54792d89df860aeacb7b.jpg"
+    },
+    {
+      "id": "f9d0240bd9e853338a51",
+      "titulo": "Manifesto narrado com um objeto 3D por frase",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Cada frase da narração ganha um objeto 3D que a ilustra: câmera de cinema, relógio, robô, olho",
+        "Frase pequena em fonte fina e a palavra-chave enorme, em letra pesada e gasta",
+        "Luz de cinema: holofote, chão refletindo e uma cor dominante por bloco"
+      ],
+      "formato": "16:9",
+      "duracao": 62,
+      "poster": "posters/f9d0240bd9e853338a51.jpg",
+      "autor": "@miftahul_islam_efaz",
+      "link_original": "https://www.instagram.com/reel/DeImcItix7Z/"
+    },
+    {
+      "id": "88f18ef5c24ca6fc5133",
+      "titulo": "Página montada ao vivo que vira objeto 3D",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Um traço vira card e o card vira a página: cada forma nasce da anterior",
+        "Interface viva: sublinhado se desenhando, texto digitando, cursor clicando, lista marcando",
+        "A tela gira para 3D e o CTA é digitado num teclado 3D"
+      ],
+      "formato": "9:16",
+      "duracao": 22.1,
+      "poster": "posters/88f18ef5c24ca6fc5133.jpg",
+      "autor": "@miftahul_islam_efaz",
+      "link_original": "https://www.instagram.com/reel/DeH5WTZgSmX/"
+    },
+    {
+      "id": "43b48f9ef9b09ce96b15",
+      "titulo": "Lançamento com mascote 3D e telas do produto recriadas",
+      "categoria": "motion",
+      "estilo": null,
+      "aprender": [
+        "Mascote 3D que fala e reage conduz o vídeo do começo ao fim",
+        "Telas recriadas como componentes vivos: chat respondendo, editor de código, loja de extensões",
+        "Números viram imagem: contador gigante e grade de mil quadrados mudando de cor"
+      ],
+      "formato": "16:9",
+      "duracao": 72,
+      "poster": "posters/43b48f9ef9b09ce96b15.jpg",
+      "autor": "@miftahul_islam_efaz",
+      "link_original": "https://www.instagram.com/reel/Dd54bw2J5bc/"
     },
     {
       "id": "77bfb9d7ff383bc1e109",
