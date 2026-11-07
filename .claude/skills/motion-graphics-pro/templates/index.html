@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Motion — template</title>
+<!-- fontes servidas localmente (veja SKILL.md, "Fontes") -->
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<script src="assets/gsap.min.js"></script>
+<style>
+:root{ --bg:#060E15; --ivory:#F4EFE3; --accent:#38C9FF; --ink:#06131C; }
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+#root{position:relative;width:1080px;height:1920px;overflow:hidden;background:radial-gradient(60% 40% at 50% 45%,#173246,#060E15 80%)}
+#cam{position:absolute;inset:0;transform-origin:50% 47%}
+.scene{position:absolute;inset:0;perspective:1600px;visibility:hidden}
+.ctr{position:absolute;left:50%;top:0}
+.display{font-weight:800;font-family:'Inter',sans-serif;line-height:.9;text-transform:uppercase;white-space:nowrap;color:var(--ivory)}
+.mask{display:inline-block;overflow:hidden;vertical-align:top;padding:.12em .04em 0;margin-top:-.12em}
+.w{display:inline-block}
+#flash{position:absolute;inset:0;background:#cdf3ff;mix-blend-mode:screen;opacity:0}
+#vignette{position:absolute;inset:0;background:radial-gradient(115% 85% at 50% 45%,transparent 55%,rgba(0,0,0,.78))}
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="cam">
+    <div class="scene" id="s0">
+      <div class="ctr" id="title" style="top:820px"><div class="display" style="font-size:140px">
+        <span class="mask"><span class="w">SUA</span></span> <span class="mask"><span class="w">COPY</span></span></div></div>
+    </div>
+  </div>
+  <div id="flash"></div><div id="vignette"></div>
+</div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const BPM=114, B=60/BPM, at=b=>+(b*B).toFixed(4);
+window.BPM=BPM;
+const SC=[0,8].map(at);                      // inícios das cenas + fim (em batidas)
+const END=SC[SC.length-1]; window.DURATION=END;
+const SAFE={top:470,bottom:1430,left:110,right:930}; window.SAFE=SAFE;   // ajuste ao destino
+const CUES=[]; window.CUES=CUES; const cue=(t,type,g=1)=>CUES.push({t:+t.toFixed(3),type,g});
+const tl=gsap.timeline({paused:true,defaults:{ease:'power3.out'}});
+let IMP=[];
+
+async function boot(){
+  await document.fonts.load('800 140px Inter'); await document.fonts.ready;
+  build(); window.__ready=true;
+  if(!navigator.webdriver){const t0=performance.now();(function loop(){renderAt(((performance.now()-t0)/1000)%END);requestAnimationFrame(loop);})();}
+}
+function build(){
+  gsap.set('.ctr',{xPercent:-50});           // centraliza .ctr (não use margin-left junto)
+  const show=(id,a,b)=>{tl.set(id,{visibility:'visible'},a);tl.set(id,{visibility:'hidden'},b);};
+  show('#s0',0,SC[1]);
+  // ---- cena 0: entrada -> leitura -> saída ----
+  tl.from('#title .w',{yPercent:115,duration:.5,stagger:.08,ease:'expo.out'},.1);
+  cue(.1,'impact',.9);
+  tl.fromTo('#flash',{opacity:.4},{opacity:0,duration:.35,immediateRender:false},.1);
+  tl.to('#title',{y:-1400,opacity:0,duration:.5,ease:'expo.in'},END-.6);   // saída de verdade
+  cue(END-.5,'whoosh',.8);
+  IMP=CUES.filter(c=>c.type==='impact').map(c=>[c.t,c.g]);
+}
+window.renderAt=function(t){
+  tl.seek(Math.min(t,END-1e-4),false);
+  const ph=t/B%1, bump=.01*Math.max(0,1-ph*3)**2;         // pulso por batida
+  let sx=0,sy=0; for(const [t0,g] of IMP){const d=t-t0;if(d>=0&&d<.45){const k=(1-d/.45)**2*g;sx+=Math.sin(d*70)*20*k;sy+=Math.cos(d*61)*16*k;}}
+  gsap.set('#cam',{x:sx,y:sy,scale:1+bump});
+};
+boot();
+</script>
+</body>
+</html>
