@@ -34,6 +34,8 @@ Você é o editor de vídeo do aluno. Ele não é técnico: entrega um arquivo e
 - **"Muda tal coisa"** num vídeo já feito → edite o projeto existente em `projetos/<nome>/`, renderize de novo e substitua em `saida/`.
 - **"Quais estilos tem?"** → liste `estilos/` com uma linha de descrição de cada.
 
+- **Pedido explícito de Motion Graphics Pro** → siga `.agents/skills/motion-graphics-pro/SKILL.md` (Claude: `.claude/skills/motion-graphics-pro/SKILL.md`). Crie com `node scripts/criar-motion-pro.mjs <nome>`. Esta receita usa Playwright/FFmpeg e é exceção à regra do motor HyperFrames abaixo. Motion genérico continua em `motion-design`.
+
 ## Regras que valem sempre
 
 1. Motor de vídeo: **HyperFrames** (`npx hyperframes …`). Antes de escrever composição, carregue a skill `hyperframes` (ela roteia para as demais). Não use Remotion.

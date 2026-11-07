@@ -51,6 +51,12 @@ Ele copia a **linguagem** da edição, não a identidade: as cores e a logo cont
 ## Motion design
 Peça: *"faz um motion de 10 s anunciando X"*. Antes, coloque prints e vídeos que você gosta em `referencias/`. O agente mostra um **storyboard** primeiro; só depois de você aprovar ele anima e renderiza.
 
+### Motion Graphics Pro
+
+A skill `motion-graphics-pro` está incluída para Codex e Claude Code, com direção, tipografia cinética, CSS 3D, transições, trilha/SFX procedural, render por Playwright + FFmpeg e auditoria de faixa segura. Peça: **"Use motion-graphics-pro para criar uma vinheta de 10 segundos com a minha marca"**.
+
+Inclui quatro referências técnicas, template e ferramentas. O agente cria o projeto com `node scripts/criar-motion-pro.mjs <nome>`, instala as dependências locais e mostra o storyboard antes de animar. Não inclui a biblioteca pessoal de referências nem skills de licença individual. Para o fluxo HyperFrames, continue usando `motion-design`.
+
 ## B-roll (imagens de apoio)
 Peça: *"edita entrada/meu-video.mp4 com b-roll nas partes em que eu cito notícias"*, ou só *"põe b-roll no minuto 0:12"*. Quando o seu roteiro cita fato, notícia, marca, pessoa ou dado, o agente usa a skill [get-brolls](https://github.com/engenheirodevideo/get-brolls) (instalada no setup): busca a fonte de verdade, mostra as prévias para você aprovar e só então baixa o trecho, que entra no vídeo sincronizado com a sua fala. A origem e as condições de uso de cada trecho ficam registradas em `projetos/<nome>/broll/entrega/`.
 
