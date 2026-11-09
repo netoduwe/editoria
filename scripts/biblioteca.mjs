@@ -314,7 +314,7 @@ async function main() {
       console.log('MEUS PROJETOS'); for (const m of b.meus) console.log(`  projeto:${m.nome}  ${m.titulo}${m.estilo ? ` · estilo ${m.estilo}` : ''}`);
       if (!b.meus.length) console.log('  (nenhum ainda)');
       console.log('TEMPLATES'); for (const t of b.templates) console.log(`  ${t.id}  ${t.titulo} · ${t.caminho}`);
-      console.log('DA TURMA'); for (const t of b.turma) console.log(`  ${t.id}  ${t.titulo}${t.estilo ? ` · estilo ${t.estilo}` : ''}${ocultos.has(t.id) ? ' (oculto)' : ''}`);
+      console.log('DA TURMA'); for (const t of b.turma) console.log(`  ${t.id}  ${t.titulo}${t.estilo ? ` · estilo ${t.estilo}` : ''}${t.autor ? ` · ${t.autor}` : ''}${ocultos.has(t.id) ? ' (oculto)' : ''}`);
       console.log('PASTAS'); for (const f of b.preferencias.pastas) console.log(`  ${f.nome}: ${f.itens.length} item(ns)`);
       if (b.lixeira.length) { console.log('LIXEIRA'); for (const l of b.lixeira) console.log(`  ${l.nome}  ${l.titulo}`); }
       return;
